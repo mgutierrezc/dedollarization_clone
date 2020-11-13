@@ -1,0 +1,218 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+{% load staticfiles otree %}
+
+{% block styles %}
+<style>
+table, th, td {
+  border: 0px solid black;
+  border-collapse: collapse;
+  padding: 15px;
+}
+table.t2, th.t2, td.t2 {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 3px;
+  width: 40px;
+  text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+      window.onload = function () 
+      {
+        document.getElementById("trade_attempted_").value = "{{ False }}";
+      }
+    </script>
+{% endblock %}
+
+{% block title %}
+    Ronda {{ subsession.round_number }}
+{% endblock %}
+
+{% block content %}
+<font color="burlywood"><h4 align="right">Tu etiqueta: {{ participant_id }}</h4></font>
+<br><br>
+<div class="row">
+    <div class="col-3">
+        <table>
+            <tr>
+            <td>
+            <h4> Tú: </h4>
+                <p>
+                Grupo {{ group_color }}<br>
+                Posees objeto: <br>
+                <!--<br> Ficha {{ other_token_color }}-->
+                {% if token_color == Constants.red %}
+                Ficha roja <br>
+                {% elif token_color == Constants.blue %}
+                Ficha azul <br>
+                {% elif token_color == Constants.trade_good %}
+                Bien de consumo <br>
+                {% endif %}
+
+                {% if group_color == Constants.red %} <img height="20%" width="20%" src="{% static "RedPerson.png"%}"/>
+                {% elif group_color == Constants.blue %} <img height="20%" width="20%" src="{% static "BluePerson.png"%}"/>
+                {% endif %}
+
+                {% if token_color == Constants.red %}
+                <img height="30%" width="30%" src="{% static "redCoin.png"%}"/>
+                {% elif token_color == Constants.blue %}
+                <img height="30%" width="30%" src="{% static "blueCoin.png"%}"/>
+                {% elif token_color == Constants.trade_good %}
+                <img height="30%" width="30%" src="{% static "object.png"%}"/>
+                {% endif %}
+
+            </p>
+            </td>
+            </tr>
+            <tr>
+            <td>
+            <h4> Tu socio: </h4>
+            <p>
+                Grupo {{ other_group_color }} <br>
+                Posee objeto: <br>
+
+                <!--<br> Ficha {{ other_token_color }}-->
+                {% if other_token_color == Constants.red %}
+                Ficha roja <br>
+                {% elif other_token_color == Constants.blue %}
+                Ficha azul <br>
+                {% elif other_token_color == Constants.trade_good %}
+                Bien de consumo <br>
+                {% endif %}
+
+                {% if other_group_color == Constants.red %} <img height="20%" width="20%" src="{% static "RedPerson.png"%}"/>
+                {% elif other_group_color == Constants.blue %} <img height="20%" width="20%" src="{% static "BluePerson.png"%}"/>
+                {% endif %}
+
+                {% if other_token_color == Constants.red %}
+                <img height="30%" width="30%" src="{% static "redCoin.png"%}"/>
+                {% elif other_token_color == Constants.blue %}
+                <img height="30%" width="30%" src="{% static "blueCoin.png"%}"/>
+                {% elif other_token_color == Constants.trade_good %}
+                <img height="30%" width="30%" src="{% static "object.png"%}"/>
+                {% endif %}
+            </p>
+            </td>
+            </tr>
+        </table>
+        {% if role_pre == other_role_pre %}
+        <p>
+            No puedes intercambiar con tu socio, ya que los dos tienen el mismo tipo de objeto.
+            <!--{{ role_pre }}.-->
+        </p>
+        <input type="hidden" name="trade_attempted" id="trade_attempted_"/>
+        {% else %}
+        <p>
+            ¿Quieres intercambiar tu
+            {% if token_color != Constants.trade_good %}
+                {% if token_color == Constants.red %}
+                    ficha roja
+                {% elif token_color == Constants.blue %}
+                    ficha azul
+                {% endif %}
+                a cambio del bien de consumo de tu socio?
+            {% else %}
+            bien de consumo a cambio de la
+                {% if other_token_color == Constants.red %}
+                    ficha roja
+                {% elif other_token_color == Constants.blue %}
+                    ficha azul
+                {% endif %}
+            de tu socio?
+            {% endif %}
+        </p>
+        {% formfield player.trade_attempted %}
+        {% endif %}
+        {% next_button %}
+    </div>
+    <div class="col-9">
+        {% if subsession.round_number >= 1 %}
+
+        <h5>Rondas anteriores</h5>
+
+        <div class="row">
+            <div class="col-8">
+            </div>
+            <div class="col-3   ">
+                <p><b>Pago acumulado: {{ player.participant.payoff }}</b></p>
+            </div>
+        </div>
+
+        <input type="hidden" name="trading"/>
+        {{ form.trading.errors }}
+
+        <table class = "t2">
+            <tr class = "t2">
+                <th class = "t2">Ronda</th>
+                <th class = "t2">Tu Objeto</th>
+                <th class = "t2">Objeto del Socio</th>
+                <th class = "t2">Grupo del Socio</th>
+                <th class = "t2">Intercambio Posible</th>
+                <th class = "t2">Intento de Intercambio</th>
+                <th class = "t2">Intercambio Exitoso</th>
+                <th class = "t2">Pagos de la Ronda</th>
+                {% if session.config.show_foreign_transactions %}
+                <th class = "t2">Aceptación de la Ficha Azul en tu Grupo</th>
+                {% endif %}
+                {% if session.config.show_tax_paid %}
+                <th class = "t2">Impuesto Pagado</th>
+                {% endif %}
+                {% if session.config.show_storage_cost_paid %}
+                <th class = "t2">Costo Almacenar Ficha</th>
+                {% endif %}
+         
+            </tr>
+            {% for p in player.in_previous_rounds reversed %}
+            <tr class = "t2">
+                <td class = "t2">{{ p.round_number }}</td>
+                <td class = "t2">{{ p.token_color }}</td>
+                <td class = "t2">{{ p.other_token_color }}</td>
+                <td class = "t2">{{ p.other_group_color}}</td>
+                {% if p.role_pre == p.other_role_pre %}
+                <td class = "t2">No</td>
+                {% else %}
+                <td class = "t2">Sí</td>
+                {% endif %}
+                {% if p.trade_attempted == True %}
+                <td class = "t2">Sí</td>
+                {% else %}
+                <td class = "t2">No</td>
+                {% endif %}
+                {% if p.trade_succeeded == True %}
+                <td class = "t2">Sí</td>
+                {% else %}
+                <td class = "t2">No</td>
+                {% endif %}
+                <td class = "t2">{{ p.payoff }}</td>
+                {% if session.config.show_foreign_transactions %}
+                <td class = "t2">{{ p.subsession.fc_transaction_percent }}</td>
+                {% endif %}
+                {% if session.config.show_tax_paid %}
+                <td class = "t2">{{ p.tax_paid }}</td>
+                {% endif %}
+                {% if session.config.show_storage_cost_paid %}
+                <td class = "t2">{{ p.storage_cost_paid }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+                              
+        </table>
+        {% endif %}
+    </div>
+</div>
+<br><br>
+<b>Contáctenos:</b>
+
+<br>
+<img height="2%" width="2%" src="{% static "whatsapp.png"%}"/> <a href="https://wa.me/0051985730063" target="_blank">+51 985 730 063</a>
+<br>
+<img height="2%" width="2%" src="{% static "gmail.png"%}"/> e2lab@up.edu.pe
+
+<br>
+{% include Constants.instructions_button %}
+
+{% endblock %}

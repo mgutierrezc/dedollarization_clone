@@ -1,0 +1,38 @@
+{% load otree %}
+{% load staticfiles otree %}
+
+<br /> {# line break #}
+<script src="https://code.jquery.com/jquery-3.1.1.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA=" crossorigin="anonymous"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#expand").hide();
+    $("#expand-instructions").click(function() {
+        if ($("#expand").is(":visible")) {
+            $("#expand").hide("fast");
+            return;
+        }
+        $("#expand").show("fast");
+    });
+});
+</script>
+<style>
+    #expand{
+        padding-top: 10px;
+    }
+</style>
+
+
+<br/>
+<br/>
+
+<button id="expand-instructions" class="btn " type="button" style="border-color: DimGray; color:DimGray"> Contacto </button>
+
+<div id="expand" class="instructions well well-lg"> {# paper effect starts #}
+
+<b>Contáctenos:</b>
+<br>
+<img height="2%" width="2%" src="{% static "whatsapp.png"%}"/> <a href="https://wa.me/0051985730063" target="_blank">+51 985 730 063</a>
+<br>
+<img height="2%" width="2%" src="{% static "gmail.png"%}"/> e2lab@up.edu.pe
+
+</div>   {#  paper effect ends#}
