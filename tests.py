@@ -1,8 +1,9 @@
-from otree.api import Currency as c, currency_range
+from otree.api import Currency as c, currency_range, Submission
 from . import pages
 from ._builtin import Bot
 from .models import Constants
 import random
+
 
 class PlayerBot(Bot):
 
@@ -176,8 +177,8 @@ class PlayerBot(Bot):
        # else:
        #     self.set_configs(.75, 1, 2, True, False, 0, 0.5, 0.5)
 
-       # if self.subsession.round_number == 1:
-       #     yield (pages.Introduction)
+        # if self.subsession.round_number == 1:
+        #     yield (pages.Introduction)
        
         
         ############## TRADING PAGE #############################
@@ -348,5 +349,6 @@ class PlayerBot(Bot):
         #assert(self.player.participant.payoff == money + self.player.payoff)
 
         # submit the results page
-        yield (pages.Results)
+        # yield (pages.Results)
+        yield Submission(pages.Results, check_html=False)
 
