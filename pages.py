@@ -149,7 +149,7 @@ class Trade(Page):
             self.player.trade_attempted = False
 
     def is_displayed(self):
-        return self.participant.vars['MobilePhones'] is False
+        return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['random_stop']
 
 
 class ResultsWaitPage(WaitPage):
@@ -287,7 +287,7 @@ class Results(Page):
         }
 
     def is_displayed(self):
-        return self.participant.vars['MobilePhones'] is False    
+        return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['random_stop']
 
 
 class PostResultsWaitPage(WaitPage):

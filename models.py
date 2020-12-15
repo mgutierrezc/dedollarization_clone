@@ -29,7 +29,7 @@ class Constants(BaseConstants):
     instructions_template = 'dedollarization/Instructions.html'
     contact_template = 'dedollarization/Contactenos.html'
     players_per_group = 8
-    # num_rounds = 50 # for production run
+    # num_rounds = 115 # for production run
     num_rounds = 2 # for demo run
     endowment = c(50)
     reward = c(10)
@@ -47,8 +47,12 @@ class Subsession(BaseSubsession):
     # fc_transaction_percent = models.IntegerField()
     
     def creating_session(self):
+
         with ContextSeed(42):
             if self.round_number == 1:
+                # added random_stop session var for random number of sessions between 85 and 116
+                self.session.vars['random_stop'] = random.SystemRandom.randrange(85, 116)
+
                 print('starting create subsession')
                 # puts players into groups of size players_per_group
                 self.group_randomly()
@@ -76,12 +80,16 @@ class Subsession(BaseSubsession):
                     for gi in range(n_groups):
                         # create player ids in group
                         # ex: 1,2,3,4
+
+                        random.seed(123) # fixed initial random matching
+                        #TODO: test fixed random matching
                         g = [i for i in range(Constants.players_per_group)]
 
                         # shuffle player numbers
                         # ex: 1,3,2,4
                         
                         random.shuffle(g)
+                        print(f"DEBUG: Random matching list = {g}")
 
                         # NOTE: self.session.config['probability_of_same_group'] times
                         # Constants.players_per_group needs to cleanly divide 2.
