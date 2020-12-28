@@ -177,8 +177,8 @@ class PlayerBot(Bot):
        # else:
        #     self.set_configs(.75, 1, 2, True, False, 0, 0.5, 0.5)
 
-        # if self.subsession.round_number == 1:
-        #     yield (pages.Introduction)
+        if self.subsession.round_number == 1:
+            yield (pages.Introduction)
        
         
         ############## TRADING PAGE #############################

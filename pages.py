@@ -46,20 +46,26 @@ class Trade(Page):
     def vars_for_template(self):
         # self.session.vars['pairs'] is a list of rounds.
         # each round is a dict of (group,id):(group,id) pairs.
+        print(f"DEBUG (pages.py): Current Round is {self.round_number}")
         group_id = self.player.participant.vars['group']
         player_groups = self.subsession.get_groups()
+        print(f"DEBUG (pages.py): Player Groups {player_groups}")
         bot_groups = self.session.vars['automated_traders']
+        print(f"DEBUG (pages.py): Bot Groups {bot_groups}")
 
         # special case: one special player gets to tell all the bots paired
         # with other bots, to trade
 
         # only if the automated trader treatment is on
         if self.session.config['automated_traders']:
+            print(f"DEBUG (pages.py): Current player = {self.player.id_in_group}")
             if group_id == 0 and self.player.id_in_group == 1:
                 for t1, t2 in self.session.vars['pairs'][self.round_number - 1].items():
+                    print(f"DEBUG (pages.py): t1 is {t1} and t2 is {t2}")
                     t1_group, t1_id = t1
                     t2_group, _ = t2
                     # if both members of the pair are bots
+                    print(f"DEBUG (pages.py): t1_group is {t1_group} and t2_group is {t2_group}")
                     if t1_group >= len(player_groups) and t2_group >= len(player_groups):
                         a1 = bot_groups[(t1_group, t1_id)]
                         a1.trade(self.subsession)
@@ -68,15 +74,24 @@ class Trade(Page):
         # the other pair is the pair that is paired with the current player
         other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
             (group_id, self.player.id_in_group - 1)]
+        print(f"DEBUG (pages.py): Other group = {other_group}")
         if other_group < len(player_groups):
+            print(f"DEBUG (pages.py): other_group < len(player_groups) = {other_group < len(player_groups)}")
             other_player = player_groups[other_group].get_player_by_id(other_id + 1)
+            print(f"DEBUG (pages.py): other normal player = {other_player}")
         else:
+            print(f"DEBUG (pages.py): other_group < len(player_groups) = {other_group < len(player_groups)}")
             other_player = bot_groups[(other_group, other_id)]
+            print(f"DEBUG (pages.py): other bot player = {other_player}")
 
         self.player.my_id_in_group = self.player.id_in_group
+        print(f"DEBUG (pages.py): Player id in group = {self.player.id_in_group}")
         self.player.my_group_id = group_id
+        print(f"DEBUG (pages.py): Player group id = {group_id}")
         self.player.other_id_in_group = other_id + 1
+        print(f"DEBUG (pages.py): Player other id in group = {self.player.other_id_in_group}")
         self.player.other_group_id = other_group
+        print(f"DEBUG (pages.py): Player other group id = {other_group}")
 
         # whatever color token they were assigned in models.py
         self.player.token_color = self.player.participant.vars['token']
@@ -149,7 +164,7 @@ class Trade(Page):
             self.player.trade_attempted = False
 
     def is_displayed(self):
-        return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['random_stop']
+        return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
 
 
 class ResultsWaitPage(WaitPage):
@@ -287,7 +302,7 @@ class Results(Page):
         }
 
     def is_displayed(self):
-        return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['random_stop']
+        return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
 
 
 class PostResultsWaitPage(WaitPage):

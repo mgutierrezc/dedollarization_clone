@@ -50,8 +50,8 @@ class Subsession(BaseSubsession):
 
         with ContextSeed(42):
             if self.round_number == 1:
-                # added random_stop session var for random number of sessions between 85 and 116
-                self.session.vars['random_stop'] = random.SystemRandom.randrange(85, 116)
+                # added predetermined_stop
+                self.session.vars['predetermined_stop'] = self.session.config["round_to_stop"]
 
                 print('starting create subsession')
                 # puts players into groups of size players_per_group
@@ -77,19 +77,22 @@ class Subsession(BaseSubsession):
                     # in this map
                     pairs = {}
                     groups = []
-                    for gi in range(n_groups):
+                    for gi in range(n_groups): # gi: id of a group
                         # create player ids in group
                         # ex: 1,2,3,4
 
-                        random.seed(123) # fixed initial random matching
+                        print(f"DEBUG: Group {gi}")
+
+                        #random.seed(123) # fixed initial random matching
                         #TODO: test fixed random matching
-                        g = [i for i in range(Constants.players_per_group)]
+                        g = [i for i in range(Constants.players_per_group)] # g: member of a group
 
                         # shuffle player numbers
                         # ex: 1,3,2,4
                         
+                        print(f"DEBUG: Group members = {g}")
                         random.shuffle(g)
-                        print(f"DEBUG: Random matching list = {g}")
+                        print(f"DEBUG: Group members after shuffling = {g}")
 
                         # NOTE: self.session.config['probability_of_same_group'] times
                         # Constants.players_per_group needs to cleanly divide 2.
@@ -108,9 +111,12 @@ class Subsession(BaseSubsession):
                         # ex: (0,1) <=> (0,3)
                         #     (0,3) <=> (0,1)
                         for i in range(0, index, 2):
+                            print(f"DEBUG: Pairs at beginning of Loop = {pairs}")
                             pairs[(gi, g_sample_homogeneous[i])] = (gi, g_sample_homogeneous[i + 1])
-                            pairs[(gi, g_sample_homogeneous[i + 1])] = (gi, g_sample_homogeneous[i])
-
+                            print(f"DEBUG: Pairs at middle of Loop = {pairs}")
+                            pairs[(gi, g_sample_homogeneous[i + 1])] = (gi, g_sample_homogeneous[i])    
+                            print(f"DEBUG: Pairs at end of Loop = {pairs}")
+                            print(f"DEBUG: ------------------------------")
 
 
                         # store the heterogeneous players so they can be paired later
@@ -120,13 +126,16 @@ class Subsession(BaseSubsession):
                     # randomize trader order within each group
     #                print(groups)
                     for gi in range(n_groups // 2):
-                        oi = gi + n_groups // 2 # other index
+                        oi = gi + n_groups // 2 # other index, oi: group of automated traders
                         
                         random.shuffle(groups[gi])
                         (groups[oi])
                         for i in range(len(groups[gi])):
+                            print(f"DEBUG: Other pair matching at beginning of Loop = {pairs}")
                             pairs[(gi, groups[gi][i])] = (oi, groups[oi][i])
+                            print(f"DEBUG: Other pair matching at middle of Loop = {pairs}")
                             pairs[(oi, groups[oi][i])] = (gi, groups[gi][i])
+                            print(f"DEBUG: Other pair matching at end of Loop = {pairs}")
     #               #     g = []
     #
     #
@@ -183,22 +192,33 @@ class Subsession(BaseSubsession):
                     print('starting create bots')
                     for gi in range(n_groups // 2, n_groups):
                         group_color = Constants.blue
+                        print(f"DEBUG: Automated trader group: {gi}")
                         roles = [Constants.trade_good for n in range(Constants.players_per_group // 2)]
+                        print(f"DEBUG: Automated trader roles: {roles}")
                         roles += [group_color for n in range(Constants.players_per_group // 2)]
-
+                        print(f"DEBUG: Automated trader roles after +=: {roles}")
                         
                         random.shuffle(roles)
+                        print(f"DEBUG: Automated trader roles after shuffling: {roles}")
 
                         for pi in range(Constants.players_per_group):
+                            print(f"DEBUG: Automated trader of group {gi}: {pi}")
                             trader = AutomatedTrader(self.session, pi + 1,
                                 Constants.num_rounds, Constants.players_per_group)
+                            print(f"DEBUG: Automated trader: {trader}")
                             trader.participant.vars['group_color'] = group_color
+                            print(f"DEBUG: Automated trader color: {group_color}")
                             trader.participant.vars['group'] = gi
+                            print(f"DEBUG: Automated trader endowment: {trader.participant.payoff}")
                             trader.participant.payoff += Constants.endowment
+                            print(f"DEBUG: Automated trader endowment +=: {trader.participant.payoff}")
                             trader.participant.vars['token'] = roles[pi]
+                            print(f"DEBUG: Automated trader token: {trader.participant.vars['token']}")
                             trader.dump_round_data()
                             self.session.vars['automated_traders'][(gi, pi)] = trader
+                            print(f"DEBUG: -----------------------------------------")
 
+                        print(f"DEBUG: ---------------------------------------------")
 
                 # player groups
                 print('start create players')
@@ -209,19 +229,30 @@ class Subsession(BaseSubsession):
                     # ensuring half are producers and half are consumers
                     # denotes half with a trade good
                     # denotes half with group color
+                    print(f"DEBUG: Normal Group: {g_index}")
                     roles = [Constants.trade_good for n in range(Constants.players_per_group // 2)]
+                    print(f"DEBUG: Normal Group roles: {roles}")
                     roles += [group_color for n in range(Constants.players_per_group // 2)]
-                    
+                    print(f"DEBUG: Normal Group roles +=: {roles}")
+
                     random.shuffle(roles)
+                    print(f"DEBUG: Normal Group roles after shuffle: {roles}")
 
                     # set each player's group color, and starting token (which
                     # determines who is going to be a producer vs consumer
                     # whatever number (p_index) the player is defines role
                     for p_index, p in enumerate(g.get_players()):
+                        print(f"DEBUG: Normal Player: {p_index}")
                         p.participant.vars['group_color'] = group_color
+                        print(f"DEBUG: Normal Player Color: {p.participant.vars['group_color']}")
                         p.participant.vars['group'] = g_index
                         p.participant.vars['token'] = roles[p_index]
+                        print(f"DEBUG: Normal Player Token: {p.participant.vars['token']}")
+                        print(f"DEBUG: Normal Player Endowment: {p.participant.payoff}")
                         p.participant.payoff += Constants.endowment
+                        print(f"DEBUG: Normal Player Endowment +=: {p.participant.payoff}")
+
+                    print(f"DEBUG: -----------------------------------------")
                 
             else:
                 self.group_like_round(1)
