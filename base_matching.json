@@ -1,0 +1,78 @@
+{
+    "name": "base_matching",
+    "description": "JSON with all the rounds configuration",
+    "matchings": [
+        {
+            "round": 1,
+            "items_matching": true,
+            "humans": {
+                "1": {"item": "Rojo", "partner_type": "human", "partner_id": 5},
+                "2": {"item": "Rojo", "partner_type": "human", "partner_id": 6},
+                "3": {"item": "Rojo", "partner_type": "bot", "partner_id": 1},
+                "4": {"item": "Rojo", "partner_type": "bot", "partner_id": 2},
+                "5": {"item": "Bien de consumo", "partner_type": "human", "partner_id": 1},
+                "6": {"item": "Bien de consumo", "partner_type": "human", "partner_id": 2},
+                "7": {"item": "Bien de consumo", "partner_type": "bot", "partner_id": 3},
+                "8": {"item": "Bien de consumo", "partner_type": "bot", "partner_id": 4}
+            },
+            "robots": {
+                "1": {"item": "Bien de consumo", "partner_type": "human", "partner_id": 3},
+                "2": {"item": "Bien de consumo", "partner_type": "human", "partner_id": 4},
+                "3": {"item": "Azul", "partner_type": "human", "partner_id": 7},
+                "4": {"item": "Azul", "partner_type": "human", "partner_id": 8},
+                "5": {"item": "Bien de consumo", "partner_type": "bot", "partner_id": 7},
+                "6": {"item": "Bien de consumo", "partner_type": "bot", "partner_id": 8},
+                "7": {"item": "Azul", "partner_type": "bot", "partner_id": 5},
+                "8": {"item": "Azul", "partner_type": "bot", "partner_id": 6}
+            }
+        },
+        {
+            "round": 2,
+            "items_matching": false,
+            "humans": {
+                "1": {"partner_type": "human", "partner_id": 5},
+                "2": {"partner_type": "human", "partner_id": 6},
+                "3": {"partner_type": "bot", "partner_id": 1},
+                "4": {"partner_type": "bot", "partner_id": 2},
+                "5": {"partner_type": "human", "partner_id": 1},
+                "6": {"partner_type": "human", "partner_id": 2},
+                "7": {"partner_type": "bot", "partner_id": 4},
+                "8": {"partner_type": "bot", "partner_id": 3}
+            },
+            "robots": {
+                "1": {"partner_type": "human", "partner_id": 3},
+                "2": {"partner_type": "human", "partner_id": 4},
+                "3": {"partner_type": "bot", "partner_id": 8},
+                "4": {"partner_type": "bot", "partner_id": 7},
+                "5": {"partner_type": "human", "partner_id": 7},
+                "6": {"partner_type": "human", "partner_id": 8},
+                "7": {"partner_type": "bot", "partner_id": 5},
+                "8": {"partner_type": "bot", "partner_id": 6}
+            }
+        },
+        {
+            "round": 3,
+            "items_matching": false,
+            "humans": {
+                "1": {"partner_type": "human", "partner_id": 5},
+                "2": {"partner_type": "human", "partner_id": 6},
+                "3": {"partner_type": "bot", "partner_id": 1},
+                "4": {"partner_type": "bot", "partner_id": 2},
+                "5": {"partner_type": "human", "partner_id": 1},
+                "6": {"partner_type": "human", "partner_id": 2},
+                "7": {"partner_type": "bot", "partner_id": 3},
+                "8": {"partner_type": "bot", "partner_id": 4}
+            },
+            "robots": {
+                "1": {"partner_type": "human", "partner_id": 3},
+                "2": {"partner_type": "human", "partner_id": 4},
+                "3": {"partner_type": "bot", "partner_id": 7},
+                "4": {"partner_type": "bot", "partner_id": 8},
+                "5": {"partner_type": "human", "partner_id": 7},
+                "6": {"partner_type": "human", "partner_id": 8},
+                "7": {"partner_type": "bot", "partner_id": 5},
+                "8": {"partner_type": "bot", "partner_id": 6}
+            }
+        }
+    ]
+}
