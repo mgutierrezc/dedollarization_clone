@@ -31,8 +31,9 @@ class Constants(BaseConstants):
     instructions_template = 'dedollarization/Instructions.html'
     contact_template = 'dedollarization/Contactenos.html'
     players_per_group = 8
+    number_of_bots = 20
     # num_rounds = 115 # for production run
-    num_rounds = 2 # for demo run
+    num_rounds = 3 # for demo run
     endowment = c(50)
     reward = c(10)
     red = 'Rojo'
@@ -89,9 +90,9 @@ class Subsession(BaseSubsession):
                     current_matchings = matching_file["matchings"][r]
                     humans_matchings = current_matchings["humans"] # matchings per group for humans
                     print("DEBUG: Starting human players pairing")
-                    for gi in range(n_groups/2): # gi: id of a group
+                    for gi in range(round(n_groups/2)): # gi: id of a group
                         # humans paired with other humans
-                        for player_id_in_group in range(1, Constants.players_per_group + 1):
+                        for player_id_in_group in range(Constants.players_per_group):
                             current_matching = humans_matchings[f"{player_id_in_group}"]
                             # creating the pairs for human matchings
                             if current_matching["partner_type"] == "human":
@@ -127,6 +128,7 @@ class Subsession(BaseSubsession):
                         # assigning the tokens
                         current_matchings = matching_file["matchings"][self.round_number - 1]
                         humans_matchings = current_matchings["humans"] # matchings per group for bots
+                        print(f"DEBUG: p_index = {p_index}")
                         p.participant.vars['token'] = humans_matchings[f"{p_index}"]["item"]
                         print(f"DEBUG: Normal Player Token: {p.participant.vars['token']}")
                         
@@ -145,7 +147,7 @@ class Subsession(BaseSubsession):
                 if self.session.config['automated_traders']:
                     print('starting create bots')
                     for gi in range(n_groups // 2, n_groups):
-                        for pi in range(Constants.players_per_group): # pi: bot player id in group
+                        for pi in range(Constants.number_of_bots): # pi: bot player id in group
                             print(f"DEBUG: Automated trader of group {gi}: {pi}")
                             trader = AutomatedTrader(self.session, pi + 1,
                                 Constants.num_rounds, Constants.players_per_group)
@@ -159,7 +161,8 @@ class Subsession(BaseSubsession):
                             
                             # assigning the tokens
                             current_matchings = matching_file["matchings"][self.round_number - 1]
-                            bots_matchings = current_matchings["humans"] # matchings per group for bots
+                            bots_matchings = current_matchings["bots"] # matchings per group for bots
+                            print(f"DEBUG: pi (bot index) = {pi}")
                             trader.participant.vars['token'] = bots_matchings[f"{pi}"]["item"]
                             print(f"DEBUG: Automated trader token: {trader.participant.vars['token']}")
                             
@@ -171,13 +174,14 @@ class Subsession(BaseSubsession):
                         print('starting round for bots', r + 1)
                         pairs = {}
                         groups = []
+                        print(f"DEBUG: matching_file[matchings][r] = {matching_file['matchings'][r]} ")
                         current_matchings = matching_file["matchings"][r]
-                        bots_matchings = bots_matchings["bots"] # matchings per group for humans
+                        bots_matchings = current_matchings["bots"] # matchings per group for humans
                         
                         print("DEBUG: Starting bot players pairing")
                         for gi in range(n_groups // 2, n_groups): # gi: id of a group
                             # humans paired with other humans
-                            for player_id_in_group in range(1, Constants.players_per_group + 1):
+                            for player_id_in_group in range(Constants.number_of_bots):
                                 current_matching = bots_matchings[f"{player_id_in_group}"]
                                 # creating the pairs for human matchings
                                 if current_matching["partner_type"] == "bot":
@@ -199,7 +203,8 @@ class Subsession(BaseSubsession):
                         print(f"DEBUG: ----------------------------------------------")
 
                         # assigning pairs for bots
-                        self.session.vars['pairs'].append(pairs)
+                        self.session.vars['pairs'][r] = {**self.session.vars['pairs'][r], **pairs}
+                        print(f"DEBUG: total pairs round {r} = {self.session.vars['pairs']}")
 
             else:
                 self.group_like_round(1) # to keep the players assignment to a group in rest of rounds
@@ -329,6 +334,7 @@ class Subsession(BaseSubsession):
         #                    pairs[gg[1]] = gg[0]
         #
                         self.session.vars['pairs'].append(pairs)
+                        print(f"DEBUG: pairs = {self.session.vars['pairs']}")
                     # if there is only 1 group, then we can do another loop after this
                     # one and do the exact same shit, except instantiating bots
                     # instead of getting players with p.

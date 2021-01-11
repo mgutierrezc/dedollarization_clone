@@ -66,18 +66,19 @@ class Trade(Page):
                     t2_group, _ = t2
                     # if both members of the pair are bots
                     print(f"DEBUG (pages.py): t1_group is {t1_group} and t2_group is {t2_group}")
+                    print(f"DEBUG: bot groups = {bot_groups}")
                     if t1_group >= len(player_groups) and t2_group >= len(player_groups):
                         a1 = bot_groups[(t1_group, t1_id)]
                         a1.trade(self.subsession)
 
         # gets a another pair
         # the other pair is the pair that is paired with the current player
-        if self.session.config['custom_matching'] is True: # id_in_group used directly
-            other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
-                (group_id, self.player.id_in_group)]
-        else: # index used instead of id_in_group
-            other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
-                (group_id, self.player.id_in_group - 1)]
+        # if self.session.config['custom_matching'] is True: # id_in_group used directly
+        #     other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
+        #         (group_id, self.player.id_in_group)]
+        # else: # index used instead of id_in_group
+        other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
+            (group_id, self.player.id_in_group - 1)]
         print(f"DEBUG (pages.py): Other group = {other_group}")
         if other_group < len(player_groups):
             print(f"DEBUG (pages.py): other_group < len(player_groups) = {other_group < len(player_groups)}")
@@ -203,12 +204,12 @@ class Results(Page):
         
         # identify trading partner
         # similar to above in Trade()
-        if self.session.config['custom_matching'] is True: # id_in_group used directly
-            other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
-                (group_id, self.player.id_in_group)]
-        else: # index used instead of id_in_group
-            other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
-                (group_id, self.player.id_in_group - 1)]
+        # if self.session.config['custom_matching'] is True: # id_in_group used directly
+        #     other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
+        #         (group_id, self.player.id_in_group)]
+        # else: # index used instead of id_in_group
+        other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
+            (group_id, self.player.id_in_group - 1)]
         
         # get other player object
         if other_group < len(player_groups):
