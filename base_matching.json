@@ -1,0 +1,114 @@
+{
+    "name": "base_matching",
+    "description": "JSON with all the rounds configuration",
+    "matchings": [
+        {
+            "round": 1,
+            "items_matching": true,
+            "humans": {
+                "0": {"item": "Rojo", "partner_type": "human", "partner_id": 4},
+                "1": {"item": "Rojo", "partner_type": "human", "partner_id": 5},
+                "2": {"item": "Rojo", "partner_type": "bot", "partner_id": 0},
+                "3": {"item": "Rojo", "partner_type": "bot", "partner_id": 1},
+                "4": {"item": "Bien de consumo", "partner_type": "human", "partner_id": 0},
+                "5": {"item": "Bien de consumo", "partner_type": "human", "partner_id": 1},
+                "6": {"item": "Bien de consumo", "partner_type": "bot", "partner_id": 2},
+                "7": {"item": "Bien de consumo", "partner_type": "bot", "partner_id": 3}
+            },
+            "bots": {
+                "0": {"item": "Bien de consumo", "partner_type": "human", "partner_id": 2},
+                "1": {"item": "Bien de consumo", "partner_type": "human", "partner_id": 3},
+                "2": {"item": "Azul", "partner_type": "human", "partner_id": 6},
+                "3": {"item": "Azul", "partner_type": "human", "partner_id": 7},
+                "4": {"item": "Bien de consumo", "partner_type": "bot", "partner_id": 6},
+                "5": {"item": "Bien de consumo", "partner_type": "bot", "partner_id": 7},
+                "6": {"item": "Azul", "partner_type": "bot", "partner_id": 4},
+                "7": {"item": "Azul", "partner_type": "bot", "partner_id": 5},
+                "8": {"item": "Azul", "partner_type": "bot", "partner_id": 9},
+                "9": {"item": "Azul", "partner_type": "bot", "partner_id": 8},
+                "10": {"item": "Azul", "partner_type": "bot", "partner_id": 11},
+                "11": {"item": "Azul", "partner_type": "bot", "partner_id": 10},
+                "12": {"item": "Azul", "partner_type": "bot", "partner_id": 13},
+                "13": {"item": "Azul", "partner_type": "bot", "partner_id": 12},
+                "14": {"item": "Azul", "partner_type": "bot", "partner_id": 15},
+                "15": {"item": "Azul", "partner_type": "bot", "partner_id": 14},
+                "16": {"item": "Azul", "partner_type": "bot", "partner_id": 17},
+                "17": {"item": "Azul", "partner_type": "bot", "partner_id": 16},
+                "18": {"item": "Azul", "partner_type": "bot", "partner_id": 19},
+                "19": {"item": "Azul", "partner_type": "bot", "partner_id": 18}
+            }
+        },
+        {
+            "round": 2,
+            "items_matching": false,
+            "humans": {
+                "0": {"partner_type": "human", "partner_id": 4},
+                "1": {"partner_type": "human", "partner_id": 5},
+                "2": {"partner_type": "bot", "partner_id": 0},
+                "3": {"partner_type": "bot", "partner_id": 1},
+                "4": {"partner_type": "human", "partner_id": 0},
+                "5": {"partner_type": "human", "partner_id": 1},
+                "6": {"partner_type": "bot", "partner_id": 3},
+                "7": {"partner_type": "bot", "partner_id": 2}
+            },
+            "bots": {
+                "0": {"partner_type": "human", "partner_id": 2},
+                "1": {"partner_type": "human", "partner_id": 3},
+                "2": {"partner_type": "bot", "partner_id": 7},
+                "3": {"partner_type": "bot", "partner_id": 6},
+                "4": {"partner_type": "human", "partner_id": 6},
+                "5": {"partner_type": "human", "partner_id": 7},
+                "6": {"partner_type": "bot", "partner_id": 4},
+                "7": {"partner_type": "bot", "partner_id": 5},
+                "8": {"partner_type": "bot", "partner_id": 9},
+                "9": {"partner_type": "bot", "partner_id": 8},
+                "10": {"partner_type": "bot", "partner_id": 11},
+                "11": {"partner_type": "bot", "partner_id": 10},
+                "12": {"partner_type": "bot", "partner_id": 13},
+                "13": {"partner_type": "bot", "partner_id": 12},
+                "14": {"partner_type": "bot", "partner_id": 15},
+                "15": {"partner_type": "bot", "partner_id": 14},
+                "16": {"partner_type": "bot", "partner_id": 17},
+                "17": {"partner_type": "bot", "partner_id": 16},
+                "18": {"partner_type": "bot", "partner_id": 19},
+                "19": {"partner_type": "bot", "partner_id": 18}
+            }
+        },
+        {
+            "round": 3,
+            "items_matching": false,
+            "humans": {
+                "0": {"partner_type": "human", "partner_id": 4},
+                "1": {"partner_type": "human", "partner_id": 5},
+                "2": {"partner_type": "bot", "partner_id": 0},
+                "3": {"partner_type": "bot", "partner_id": 1},
+                "4": {"partner_type": "human", "partner_id": 0},
+                "5": {"partner_type": "human", "partner_id": 1},
+                "6": {"partner_type": "bot", "partner_id": 2},
+                "7": {"partner_type": "bot", "partner_id": 3}
+            },
+            "bots": {
+                "0": {"partner_type": "human", "partner_id": 2},
+                "1": {"partner_type": "human", "partner_id": 3},
+                "2": {"partner_type": "bot", "partner_id": 6},
+                "3": {"partner_type": "bot", "partner_id": 7},
+                "4": {"partner_type": "human", "partner_id": 6},
+                "5": {"partner_type": "human", "partner_id": 7},
+                "6": {"partner_type": "bot", "partner_id": 4},
+                "7": {"partner_type": "bot", "partner_id": 5},
+                "8": {"partner_type": "bot", "partner_id": 9},
+                "9": {"partner_type": "bot", "partner_id": 8},
+                "10": {"partner_type": "bot", "partner_id": 11},
+                "11": {"partner_type": "bot", "partner_id": 10},
+                "12": {"partner_type": "bot", "partner_id": 13},
+                "13": {"partner_type": "bot", "partner_id": 12},
+                "14": {"partner_type": "bot", "partner_id": 15},
+                "15": {"partner_type": "bot", "partner_id": 14},
+                "16": {"partner_type": "bot", "partner_id": 17},
+                "17": {"partner_type": "bot", "partner_id": 16},
+                "18": {"partner_type": "bot", "partner_id": 19},
+                "19": {"partner_type": "bot", "partner_id": 18}
+            }
+        }
+    ]
+}
