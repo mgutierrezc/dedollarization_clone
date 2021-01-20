@@ -15,15 +15,16 @@ class ContextSeed:
     """
     def __init__(self, seed):
         pass
-        #self.seed = seed
+        # self.seed = seed #DEBUG
     
     def __enter__(self):
         pass
-        #random.seed(self.seed)
+        # random.seed(self.seed) #DEBUG
     
     def __exit__(self, *_):
         pass
-        #random.seed(random.randint(0, 100))
+        # random.seed(random.randint(0, 100)) #DEBUG
+
 
 class Constants(BaseConstants):
     name_in_url = 'dedollarization'
@@ -33,7 +34,7 @@ class Constants(BaseConstants):
     players_per_group = 8
     number_of_bots = 20
     # num_rounds = 115 # for production run
-    num_rounds = 3 # for demo run
+    num_rounds = 5 # for demo run
     endowment = c(50)
     reward = c(10)
     red = 'Rojo'

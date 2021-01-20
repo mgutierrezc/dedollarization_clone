@@ -178,9 +178,11 @@ class PlayerBot(Bot):
        # else:
        #     self.set_configs(.75, 1, 2, True, False, 0, 0.5, 0.5)
 
-        if self.subsession.round_number == 1:
+        # if self.round_number == self.session.config['round_to_stop']:
+        # if self.subsession.round_number == 1:
+        #     yield (pages.Introduction)
+        if self.subsession.round_number == 1 and self.round_number <= self.session.config['round_to_stop']:
             yield (pages.Introduction)
-       
         
         ############## TRADING PAGE #############################
         group_id = self.player.participant.vars['group']
@@ -222,7 +224,11 @@ class PlayerBot(Bot):
         # assert(f'Their role is {other_role_pre}' in self.html)
 
         # play the trading page
-        yield (pages.Trade, { 'trade_attempted': trade_attempted })
+        # yield (pages.Trade, { 'trade_attempted': trade_attempted })
+        # for DEBUG 1000
+        if self.round_number <= self.session.config['round_to_stop']:
+            yield (pages.Trade, { 'trade_attempted': True })
+
 
         ################## RESULTS PAGE ###########################
         # get player groups and bot groups
@@ -240,7 +246,8 @@ class PlayerBot(Bot):
                     # if both members of the pair are bots
                     if t1_group >= len(player_groups) and t2_group >= len(player_groups):
                         a1 = bot_groups[(t1_group, t1_id)]
-                        self.check_bot_results(a1, self.session.config, self.subsession)
+                        # for DEBUG 1000
+                        # self.check_bot_results(a1, self.session.config, self.subsession)
         
         # get trading partner
         other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
@@ -254,55 +261,56 @@ class PlayerBot(Bot):
         
         # Assertion tests
 
+        # for DEBUG 1000
         # if other player is bot, and trade is possible, bot should try to trade
-        if other_group >= len(player_groups) \
-        and token_color != other_token_color:
-            if role_pre == 'Producer':
-                assert(other_trade_attempted)
-            else:
-                if other_group_color == token_color:    
-                    assert(other_trade_attempted)
-                elif self.session.config['bots_trade_same_color']:
-                    assert(not other_trade_attempted)
-                else:
-                    assert(other_trade_attempted)
+        # if other_group >= len(player_groups) \
+        # and token_color != other_token_color:
+        #     if role_pre == 'Producer':
+        #         assert(other_trade_attempted)
+        #     else:
+        #         if other_group_color == token_color:    
+        #             assert(other_trade_attempted)
+        #         elif self.session.config['bots_trade_same_color']:
+        #             assert(not other_trade_attempted)
+        #         else:
+        #             assert(other_trade_attempted)
 
-        # if trade should succeed, it does
-        if trade_attempted and other_trade_attempted:
-            assert(self.player.trade_succeeded)
-            assert(trade_attempted == self.player.trade_attempted)
-            assert(role_pre == self.player.role_pre)
-            assert(other_role_pre == self.player.other_role_pre)
-            assert(self.player.role_pre != self.player.other_role_pre)
-            assert(self.player.token_color != self.player.other_token_color)
+        # # if trade should succeed, it does
+        # if trade_attempted and other_trade_attempted:
+        #     assert(self.player.trade_succeeded)
+        #     assert(trade_attempted == self.player.trade_attempted)
+        #     assert(role_pre == self.player.role_pre)
+        #     assert(other_role_pre == self.player.other_role_pre)
+        #     assert(self.player.role_pre != self.player.other_role_pre)
+        #     assert(self.player.token_color != self.player.other_token_color)
         
-        # if trade should not succeed, it doesnt
-        # p1 attemtps and p2 does not
-        if trade_attempted and not other_trade_attempted:
-            assert(not self.player.trade_succeeded)
-            assert(not other_player.trade_succeeded)
-        # p2 attempts and p1 does not
-        if not trade_attempted and other_trade_attempted:
-            assert(not other_player.trade_succeeded)
-            assert(not self.player.trade_succeeded)
-        # neither player attempts
-        if not trade_attempted and not other_trade_attempted:
-            assert(not other_player.trade_succeeded)
-            assert(not self.player.trade_succeeded)
+        # # if trade should not succeed, it doesnt
+        # # p1 attemtps and p2 does not
+        # if trade_attempted and not other_trade_attempted:
+        #     assert(not self.player.trade_succeeded)
+        #     assert(not other_player.trade_succeeded)
+        # # p2 attempts and p1 does not
+        # if not trade_attempted and other_trade_attempted:
+        #     assert(not other_player.trade_succeeded)
+        #     assert(not self.player.trade_succeeded)
+        # # neither player attempts
+        # if not trade_attempted and not other_trade_attempted:
+        #     assert(not other_player.trade_succeeded)
+        #     assert(not self.player.trade_succeeded)
 
-        # if trade does not succeed, tokens to not switch
-        if not self.player.trade_succeeded:
-            assert(self.player.participant.vars['token'] == self.player.token_color)
-            assert(other_player.participant.vars['token'] == other_player.token_color)
+        # # if trade does not succeed, tokens to not switch
+        # if not self.player.trade_succeeded:
+        #     assert(self.player.participant.vars['token'] == self.player.token_color)
+        #     assert(other_player.participant.vars['token'] == other_player.token_color)
         
-        # if trade does succeed, tokens to swotch
-        if self.player.trade_succeeded:
-            #print('PLAYER', group_id, self.player.id_in_group)
-            #print(token_color, self.player.token_color)
-            #print(other_token_color, self.player.other_token_color)
-            #print(self.player.participant.vars['token'])
-            assert(self.player.participant.vars['token'] == self.player.other_token_color)
-            assert(other_player.participant.vars['token'] == self.player.token_color)
+        # # if trade does succeed, tokens to swotch
+        # if self.player.trade_succeeded:
+        #     #print('PLAYER', group_id, self.player.id_in_group)
+        #     #print(token_color, self.player.token_color)
+        #     #print(other_token_color, self.player.other_token_color)
+        #     #print(self.player.participant.vars['token'])
+        #     assert(self.player.participant.vars['token'] == self.player.other_token_color)
+        #     assert(other_player.participant.vars['token'] == self.player.token_color)
         
         
         store_homo = c(self.session.config['token_store_cost_homogeneous'])
@@ -322,27 +330,30 @@ class PlayerBot(Bot):
         else:
             tax_cons = c(0)
 
-        if self.player.trade_succeeded:
-            if self.player.role_pre == 'Consumer':
-                assert(self.player.participant.vars['token'] == Constants.trade_good)
-                assert(self.player.payoff == Constants.reward - tax_cons)
-                assert(self.player.payoff != payoff)
+        # for DEBUG 1000
+        # if self.player.trade_succeeded:
+        #     if self.player.role_pre == 'Consumer':
+        #         assert(self.player.participant.vars['token'] == Constants.trade_good)
+        #         assert(self.player.payoff == Constants.reward - tax_cons)
+        #         assert(self.player.payoff != payoff)
             
-            if self.player.role_pre == 'Producer':
-                assert(self.player.participant.vars['token'] == Constants.red \
-                    or self.player.participant.vars['token'] == Constants.blue)
-                assert(self.player.payoff == -tax_prod)
+        #     if self.player.role_pre == 'Producer':
+        #         assert(self.player.participant.vars['token'] == Constants.red \
+        #             or self.player.participant.vars['token'] == Constants.blue)
+        #         assert(self.player.payoff == -tax_prod)
        
-        if not self.player.trade_succeeded:
-            if self.player.participant.vars['token'] == group_color:
-                assert(self.player.payoff == -store_homo)
+        # if not self.player.trade_succeeded:
+        #     if self.player.participant.vars['token'] == group_color:
+        #         assert(self.player.payoff == -store_homo)
             
-            if self.player.participant.vars['token'] != group_color \
-                and self.player.participant.vars['token'] != Constants.trade_good:
-                assert(self.player.payoff == -store_hetero)
+        #     if self.player.participant.vars['token'] != group_color \
+        #         and self.player.participant.vars['token'] != Constants.trade_good:
+        #         assert(self.player.payoff == -store_hetero)
         
-        if self.player.participant.vars['token'] == Constants.trade_good:
-            assert(self.player.payoff >= -tax_cons)
+        # if self.player.participant.vars['token'] == Constants.trade_good:
+        #     assert(self.player.payoff >= -tax_cons)
+
+        # -------------------------------------        # for DEBUG 1000
         
         # assert payoffs get updated as they should
         #if other_group >= len(player_groups):
@@ -351,5 +362,6 @@ class PlayerBot(Bot):
 
         # submit the results page
         # yield (pages.Results)
-        yield Submission(pages.Results, check_html=False)
+        if self.round_number <= self.session.config['round_to_stop']:
+            yield Submission(pages.Results, check_html=False)
 

@@ -180,7 +180,7 @@ class ResultsWaitPage(WaitPage):
         pass
 
     def is_displayed(self):
-        return self.participant.vars['MobilePhones'] is False
+        return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
 
 class Results(Page):
     timeout_seconds = 1
@@ -373,7 +373,7 @@ class PostResultsWaitPage(WaitPage):
             #    p.participant.payoff *= self.session.config['soles_per_ecu']
 
     def is_displayed(self):
-        return self.participant.vars['MobilePhones'] is False
+        return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
 
 
 page_sequence = [
