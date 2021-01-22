@@ -34,7 +34,7 @@ class Constants(BaseConstants):
     players_per_group = 8
     number_of_bots = 20
     # num_rounds = 115 # for production run
-    num_rounds = 5 # for demo run
+    num_rounds = 10 # for demo run
     endowment = c(50)
     reward = c(10)
     red = 'Rojo'
