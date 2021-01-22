@@ -120,7 +120,7 @@ def humans_matchings(number_of_humans, number_of_bots, items_matching, probabili
     group_type = "human"
     other_group_type = "bot"
     group_item = "Rojo"
-    good = "Bien de consumo"
+    good = "Bien de Consumo"
     output = {} # dictionary with human ids in group as entries
 
     pairs = {}
@@ -213,7 +213,7 @@ def bots_matchings(number_of_humans, number_of_bots, items_matching, matchings_f
     group_type = "bot"
     other_group_type = "human"
     group_item = "Azul"
-    good = "Bien de consumo"
+    good = "Bien de Consumo"
     heterogeneous_pairs = {} # empty dict for storing human-bot pairings
     output = {} # dictionary with human ids in group as entries
 
