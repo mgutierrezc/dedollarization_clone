@@ -20,22 +20,21 @@ class Introduction(Page):
 
         # Treatment variable: 0 if baseline, 1 if tax treatment, 2 if cost treatment, 3 show foreign trans treatment
         # Baseline Treatment
-        treatment = 0
+        perc_taxes = False
+        storage_costs = False
+
         # Tax Treatment
-        if perc_f_tax_consumer != 0 and perc_f_tax_producer != 0 and foreign_tax != 0:
-            treatment = 1
+        if perc_f_tax_consumer != 0 or perc_f_tax_producer != 0:
+            perc_taxes = True
         # 2 Cost Treatment
-        elif store_cost_hom != 0 or store_cost_het != 0:
-            treatment = 2
-        # 3 Show Foreign Trans Treatment
-        elif show_foreign_transactions is True:
-            treatment = 3
+        if store_cost_hom != 0 or store_cost_het != 0:
+            storage_costs = True
 
         return dict(participant_id=self.participant.label, exchange_rate=exchange_rate, players_per_group=players_per_group,
                     perc_f_tax_consumer=perc_f_tax_consumer,
                     perc_f_tax_producer=perc_f_tax_producer, foreign_tax=foreign_tax, store_cost_hom=store_cost_hom,
                     store_cost_het=store_cost_het, show_foreign_transactions=show_foreign_transactions,
-                    treatment=treatment)
+                    perc_taxes=perc_taxes, storage_costs=storage_costs)
 
 
 class Trade(Page):

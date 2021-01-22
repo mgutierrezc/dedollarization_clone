@@ -43,14 +43,17 @@
         En contraste, recibir un bien de consumo de otro participante te otorga 10 puntos al momento de recibirlo.
         Es decir, el bien de consumo genera ganancia de puntos solo si se obtiene como resultado de un intercambio, sin importar de qué grupo provenga.
         Si mantienes el mismo bien de consumo más de un periodo, no recibes puntos adicionales. <br><br>
-        {% if treatment == 1 %}
+        {% if perc_taxes %}
             <strong>Impuesto: </strong><br>
             <ul>
             <li>Usar fichas azules entre agentes del grupo rojo está gravado.</li>
-            <li>Si recibes una ficha azul de otro participante del grupo rojo, pagarás un impuesto de 1 punto.</li>
-            <li>Similarmente, si intercambias una ficha azul por un bien de consumo con otro participante del grupo rojo, pagarás un impuesto de 1 punto.</li>
+            <li>Si recibes una ficha azul de otro participante del grupo rojo, pagarás un impuesto de {{ foreign_tax }} punto.</li>
+            <li>Similarmente, si intercambias una ficha azul por un bien de consumo con otro participante del grupo
+                rojo, pagarás un impuesto de {{ foreign_tax }} punto.</li>
             </ul>
-        {% elif treatment == 2 %}
+        {% endif %}
+        
+        {% if storage_costs %}
             <strong>Costo de almacenar: </strong><br>
             <ul>
             <li>Si mantienes una ficha por más de un periodo, pagarás un costo de almacenamiento.</li>
@@ -60,7 +63,7 @@
         {% endif %}
         <br>
         Durante todas las rondas de interacción, tendrás en tu pantalla la información referida a las rondas anteriores.<br>
-            {% if treatment == 3 %}
+            {% if show_foreign_transactions %}
                 En particular, se mostrará <strong>la tasa de aceptación de la ficha azul entre personas del equipo rojo.</strong><br>
             {% endif %}
         El pago de la sesión es el acumulado de puntos de las 50 rondas de interacción.
