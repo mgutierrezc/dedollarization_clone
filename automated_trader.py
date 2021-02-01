@@ -4,7 +4,9 @@ import numpy as np
 import datetime
 import random
 import pickle
+from .project_logger import get_logger
 
+logger = get_logger("automated_trader.py")
 
 class Participant():
     def __init__(self):
@@ -48,6 +50,8 @@ class Round():
 
 
 class AutomatedTrader():
+    logger.debug("-> Entering AutomatedTrader")
+
     def __init__(self, session, id_in_group, num_rounds, players_per_group):
         self.participant = Participant()
         self.__round_data = [Round() for i in range(num_rounds)]
@@ -57,18 +61,21 @@ class AutomatedTrader():
         self.players_per_group = players_per_group
 
     def dump_round_data(self):
+        logger.debug("dumping round_data")
         id_in_session = (self.id_in_group - 1) + (self.players_per_group * self.participant.vars['group'])
         fname = f'{self.session.code}_{id_in_session}.pkl' 
         with open(fname, 'wb') as f:
             pickle.dump(self.__round_data, f)
     
     def load_round_data(self):
+        logger.debug("loading round_data")
         id_in_session = (self.id_in_group - 1) + (self.players_per_group * self.participant.vars['group'])
         fname = f'{self.session.code}_{id_in_session}.pkl' 
         with open(fname, 'rb') as f:
             self.__round_data = pickle.load(f)
 
     def export_data(self):
+        logger.debug("exporting data")
         cols = ['participant.id_in_session',
                 'participant.payoff',
                 'participant.is_automated',
@@ -113,17 +120,23 @@ class AutomatedTrader():
         df.to_csv(f'dedollarization_{date}_session_{self.session.code}_automated_trader_{id_in_session}.csv')
 
     def trade(self, subsession):
+        logger.debug("bot trading action")
+
         self.load_round_data()
         self.round_number = subsession.round_number - 1
         # self.session.vars['pairs'] is a list of rounds.
         # each round is a dict of (group,id):(group,id) pairs.
         group_id = self.participant.vars['group']
         player_groups = subsession.get_groups()
+        
         bot_groups = self.session.vars['automated_traders']
-        # gets a another pair
+        # gets another pair
         # the other pair is the pair that is paired with the current player
+        logger.debug("135: gets another pair")
         other_group, other_id = self.session.vars['pairs'][self.round_number][
             (group_id, self.id_in_group - 1)]
+
+        logger.info(f"other_group < len(player_groups) is {other_group < len(player_groups)}")
         if other_group < len(player_groups):
             other_player = player_groups[other_group].get_player_by_id(other_id + 1)
         else:
@@ -150,6 +163,8 @@ class AutomatedTrader():
         #assert (self.other_group_color != None)
 
         # logic for whether you trade or not. 
+
+        logger.info(f"167: self.role_pre = {self.role_pre}, self.other_role_pre = {self.other_role_pre}")
         if self.role_pre == self.other_role_pre:
             self.trade_attempted = False
         else:
@@ -157,6 +172,7 @@ class AutomatedTrader():
             ### TREATMENT: BOTS ONLY ACCEPT THEIR OWN COLOR
 
             # if "bots only trading the same color (blue)" treatment is on
+            logger.info(f"175: self.session.config['bots_trade_same_color'] = {self.session.config['bots_trade_same_color']}")
             if self.session.config['bots_trade_same_color']:
 
                 # BOT is "self": if the other token is blue, then trade
@@ -173,9 +189,10 @@ class AutomatedTrader():
             else:
                 self.trade_attempted = True
         self.dump_round_data()
-        print(f'Round {self.round_number}, bot {self.id_in_group}, END OF TRADE\n{self.__round_data[self.round_number]}')
+        logger.info(f'Round {self.round_number}, bot {self.id_in_group}, END OF TRADE\n{self.__round_data[self.round_number]}')
 
     def compute_results(self, subsession, reward):
+        logger.info("compute_results")
         self.load_round_data()
         self.round_number = subsession.round_number - 1
         if self.trade_attempted == None:
@@ -190,6 +207,7 @@ class AutomatedTrader():
             (group_id, self.id_in_group - 1)]
         
         # get other player object
+        logger.info(f"210: other_group < len(player_groups) = {other_group < len(player_groups)}")
         if other_group < len(player_groups):
             other_player = player_groups[other_group].get_player_by_id(other_id + 1)
         else:
@@ -203,7 +221,10 @@ class AutomatedTrader():
         # if both players attempted a trade, it must be true
         # that one is a producer and one is a consumer.
         # Only 1 player performs the switch
+        logger.info(f"224: self.trade_attempted = {self.trade_attempted}")
+        logger.info(f"225: other_player.trade_attempted = {other_player.trade_attempted}")
         if self.trade_attempted and other_player.trade_attempted:
+            logger.info(f"227: self.trade_succeeded is {self.trade_succeeded}")
             # only 1 player actually switches the goods
             if self.trade_succeeded is None:
                 # switch tokens
@@ -212,8 +233,10 @@ class AutomatedTrader():
                 # set players' trade_succeeded field
                 self.trade_succeeded = True
                 other_player.trade_succeeded = True
-                if other_group > len(player_groups):
-                    other_player.store_round_data()
+                logger.info(f"other_group = {other_group}")
+                logger.info(f"len(player_groups) = {len(player_groups)}")
+                # if other_group > len(player_groups):
+                #     other_player.store_round_data()
 
             ### TREATMENT: TAX ON FOREIGN (OPPOSITE) CURRENCY
 
@@ -222,6 +245,7 @@ class AutomatedTrader():
 
             # FOREIGN TRANSACTION:
             # both parties the same group color
+            logger.info(f"248: self.role_pre = {self.role_pre}")
             if self.role_pre == 'Consumer':
                 tax_consumer = c(0)
                 if self.token_color != self.other_group_color and \
@@ -361,3 +385,4 @@ class AutomatedTrader():
         r = self.__round_data[self.round_number]
         r.trade_succeeded = v
 
+    logger.debug("<- Exiting AutomatedTrader")
