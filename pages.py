@@ -1,10 +1,14 @@
 from otree.api import Currency as c, currency_range
 from ._builtin import Page, WaitPage
 from .models import Constants
+from .project_logger import get_logger
 
+logger = get_logger('pages.py')
 
 # Description of the game: How to play and returns expected
 class Introduction(Page):
+    logger.debug("-> Entering Introduction")
+
     def is_displayed(self):
         return self.round_number == 1 and self.participant.vars['MobilePhones'] is False
 
@@ -23,6 +27,9 @@ class Introduction(Page):
         perc_taxes = False
         storage_costs = False
 
+        logger.info(f"perc_f_tax_consumer = {perc_f_tax_consumer}, perc_f_tax_producer = {perc_f_tax_producer}")
+        logger.info(f"store_cost_hom = {store_cost_hom}, store_cost_het = {store_cost_het}")
+
         # Tax Treatment
         if perc_f_tax_consumer != 0 or perc_f_tax_producer != 0:
             perc_taxes = True
@@ -35,9 +42,12 @@ class Introduction(Page):
                     perc_f_tax_producer=perc_f_tax_producer, foreign_tax=foreign_tax, store_cost_hom=store_cost_hom,
                     store_cost_het=store_cost_het, show_foreign_transactions=show_foreign_transactions,
                     perc_taxes=perc_taxes, storage_costs=storage_costs)
+    logger.debug("<- Exiting Introduction")
 
 
 class Trade(Page):
+    logger.debug("-> Entering Trade")
+
     timeout_seconds = 60
     form_model = 'player'
     form_fields = ['trade_attempted', 'trading']
@@ -45,27 +55,28 @@ class Trade(Page):
     def vars_for_template(self):
         # self.session.vars['pairs'] is a list of rounds.
         # each round is a dict of (group,id):(group,id) pairs.
-        print(f"DEBUG (pages.py): Current Round is {self.round_number}")
+        logger.debug("58: player telling bots to trade")
+        logger.info(f"Current Round is {self.round_number}")
         group_id = self.player.participant.vars['group']
         player_groups = self.subsession.get_groups()
-        print(f"DEBUG (pages.py): Player Groups {player_groups}")
+        logger.info(f"Player Groups {player_groups}")
         bot_groups = self.session.vars['automated_traders']
-        print(f"DEBUG (pages.py): Bot Groups {bot_groups}")
+        logger.info(f"Bot Groups {bot_groups}")
 
         # special case: one special player gets to tell all the bots paired
         # with other bots, to trade
 
         # only if the automated trader treatment is on
         if self.session.config['automated_traders']:
-            print(f"DEBUG (pages.py): Current player = {self.player.id_in_group}")
+            logger.info(f"70: Current player = {self.player.id_in_group}")
             if group_id == 0 and self.player.id_in_group == 1:
                 for t1, t2 in self.session.vars['pairs'][self.round_number - 1].items():
-                    print(f"DEBUG (pages.py): t1 is {t1} and t2 is {t2}")
+                    logger.info(f"73: t1 is {t1} and t2 is {t2}")
                     t1_group, t1_id = t1
                     t2_group, _ = t2
                     # if both members of the pair are bots
-                    print(f"DEBUG (pages.py): t1_group is {t1_group} and t2_group is {t2_group}")
-                    print(f"DEBUG: bot groups = {bot_groups}")
+                    logger.info(f"77: t1_group is {t1_group} and t2_group is {t2_group}")
+                    logger.info(f"78: bot groups = {bot_groups}")
                     if t1_group >= len(player_groups) and t2_group >= len(player_groups):
                         a1 = bot_groups[(t1_group, t1_id)]
                         a1.trade(self.subsession)
@@ -76,26 +87,28 @@ class Trade(Page):
         #     other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
         #         (group_id, self.player.id_in_group)]
         # else: # index used instead of id_in_group
+        logger.debug("89: gets a another pair")
         other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
             (group_id, self.player.id_in_group - 1)]
-        print(f"DEBUG (pages.py): Other group = {other_group}")
+
+        logger.info(f"91: Other group = {other_group}")
         if other_group < len(player_groups):
-            print(f"DEBUG (pages.py): other_group < len(player_groups) = {other_group < len(player_groups)}")
+            logger.info(f"other_group < len(player_groups) = {other_group < len(player_groups)}")
             other_player = player_groups[other_group].get_player_by_id(other_id + 1)
-            print(f"DEBUG (pages.py): other normal player = {other_player}")
+            logger.info(f"other normal player = {other_player}")
         else:
-            print(f"DEBUG (pages.py): other_group < len(player_groups) = {other_group < len(player_groups)}")
+            logger.info(f"other_group < len(player_groups) = {other_group < len(player_groups)}")
             other_player = bot_groups[(other_group, other_id)]
-            print(f"DEBUG (pages.py): other bot player = {other_player}")
+            logger.info(f"other bot player = {other_player}")
 
         self.player.my_id_in_group = self.player.id_in_group
-        print(f"DEBUG (pages.py): Player id in group = {self.player.id_in_group}")
+        logger.info(f"Player id in group = {self.player.id_in_group}")
         self.player.my_group_id = group_id
-        print(f"DEBUG (pages.py): Player group id = {group_id}")
+        logger.info(f"Player group id = {group_id}")
         self.player.other_id_in_group = other_id + 1
-        print(f"DEBUG (pages.py): Player other id in group = {self.player.other_id_in_group}")
+        logger.info(f"Player other id in group = {self.player.other_id_in_group}")
         self.player.other_group_id = other_group
-        print(f"DEBUG (pages.py): Player other group id = {other_group}")
+        logger.info(f"Player other group id = {other_group}")
 
         # whatever color token they were assigned in models.py
         self.player.token_color = self.player.participant.vars['token']
@@ -169,9 +182,13 @@ class Trade(Page):
 
     def is_displayed(self):
         return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
+    
+    logger.debug("<- Exiting Trade")
 
 
 class ResultsWaitPage(WaitPage):
+    logger.debug("-> Entering ResultsWaitPage")
+
     body_text = 'Espere a que los otros participantes terminen de decidir'
     # wait_for_all_groups = True
 
@@ -180,8 +197,13 @@ class ResultsWaitPage(WaitPage):
 
     def is_displayed(self):
         return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
+    
+    logger.debug("<- Exiting ResultsWaitPage")
+
 
 class Results(Page):
+    logger.debug("-> Entering Results")
+
     timeout_seconds = 1
 
     def vars_for_template(self):
@@ -191,12 +213,18 @@ class Results(Page):
         
         # special case: one special player gets to tell all the bots paired
         # with other bots, to compute results
+        logger.info(f"213: automated_traders is {self.session.config['automated_traders']}")
         if self.session.config['automated_traders']:
+
+            logger.info(f"group_id = {group_id}, self.player.id_in_group = {self.player.id_in_group}")
             if group_id == 0 and self.player.id_in_group == 1: 
+
                 for t1, t2 in self.session.vars['pairs'][self.round_number - 1].items():
                     t1_group, t1_id = t1
                     t2_group, _ = t2
+
                     # if both members of the pair are bots
+                    logger.info(f"224: t1_group = {t1_group}, t2_group = {t2_group}")
                     if t1_group >= len(player_groups) and t2_group >= len(player_groups):
                         a1 = bot_groups[(t1_group, t1_id)]
                         a1.compute_results(self.subsession, Constants.reward)
@@ -207,10 +235,12 @@ class Results(Page):
         #     other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
         #         (group_id, self.player.id_in_group)]
         # else: # index used instead of id_in_group
+        logger.debug("235: identify trading partner")
         other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
             (group_id, self.player.id_in_group - 1)]
         
         # get other player object
+        logger.info(f"other_group = {other_group}, len(player_groups) = {len(player_groups)}")
         if other_group < len(player_groups):
             other_player = player_groups[other_group].get_player_by_id(other_id + 1)
         else:
@@ -225,8 +255,12 @@ class Results(Page):
         # if both players attempted a trade, it must be true
         # that one is a producer and one is a consumer.
         # Only 1 player performs the switch
+        logger.info(f"254: self.player.trade_attempted = {self.player.trade_attempted}")
+        logger.info(f"255: other_player.trade_attempted = {other_player.trade_attempted}")
         if self.player.trade_attempted and other_player.trade_attempted: 
+
             # only 1 player actually switches the goods
+            logger.info(f"259: self.player.trade_succeeded is {self.player.trade_succeeded}")
             if self.player.trade_succeeded is None:
 
                 # switch tokens
@@ -236,8 +270,10 @@ class Results(Page):
                 # set players' trade_succeeded field
                 self.player.trade_succeeded = True
                 other_player.trade_succeeded = True
-                if other_group > len(player_groups):
-                    other_player.store_round_data()
+
+                # This lines cause an AttributeError as store_round_data() is not defined
+                # if other_group > len(player_groups):
+                #     other_player.store_round_data()
 
             ### TREATMENT: TAX ON FOREIGN (OPPOSITE) CURRENCY
             # if the player is the consumer, apply consumer tax to them
@@ -245,8 +281,13 @@ class Results(Page):
 
             # FOREIGN TRANSACTION:
             # added condition that both parties the same group color
+            logger.info(f"self.player.role_pre is {self.player.role_pre}")
             if self.player.role_pre == 'Consumer':
+
                 tax_consumer = c(0)
+                logger.info(f"self.player.token_color = {self.player.token_color}")
+                logger.info(f"self.player.other_group_color = {self.player.other_group_color}")
+                logger.info(f"self.player.group_color = {self.player.group_color}")
                 if self.player.token_color != self.player.other_group_color and \
                         self.player.group_color == self.player.other_group_color:
                     tax_consumer += self.session.config['foreign_tax'] \
@@ -256,8 +297,14 @@ class Results(Page):
                 
 
             # else if the player is the consumer, opposite
+                
             else:
+                logger.debug("else if the player is the consumer, opposite")
                 tax_producer = c(0)
+                logger.info(f"self.player.token_color = {self.player.token_color}")
+                logger.info(f"self.player.other_group_color = {self.player.other_group_color}")
+                logger.info(f"self.player.group_color = {self.player.group_color}")
+
                 if self.player.group_color != self.player.other_token_color and \
                         self.player.group_color == self.player.other_group_color:
                     tax_producer += self.session.config['foreign_tax'] \
@@ -275,7 +322,12 @@ class Results(Page):
         # if token held for a round = if trade did not succeed
         # homo: token is your color
         # hetero: token is different color
+        logger.info(f"318: self.player.trade_succeeded is {self.player.trade_succeeded}")
         if not self.player.trade_succeeded:
+
+            logger.info(f"self.player.participant.vars['token'] = {self.player.participant.vars['token']}")
+            logger.info(f"self.participant.vars['group_color'] = {self.participant.vars['group_color']}")
+            logger.info(f"self.player.group_color = {self.player.group_color}")
             if self.player.participant.vars['token'] == self.participant.vars['group_color']:
                 round_payoff -= c(self.session.config['token_store_cost_homogeneous'])
                 self.player.storage_cost_paid = self.session.config['token_store_cost_homogeneous']
@@ -312,8 +364,12 @@ class Results(Page):
     def is_displayed(self):
         return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
 
+    logger.debug("-> Exiting Results")
+
 
 class PostResultsWaitPage(WaitPage):
+    logger.debug("-> Entering PostResultsWaitPage")
+
     body_text = 'Waiting for other participants to finish viewing results.'
 #    wait_for_all_groups = True
 
@@ -324,7 +380,9 @@ class PostResultsWaitPage(WaitPage):
         fc_count = 0
         fc_possible_count = 0
 
+        logger.debug("376: count foreign currency transactions this round")
         for p in self.subsession.get_players():
+            logger.info("p.group_color = {p.group_color}, p.other_group_color = {p.other_group_color}, p.role_pre = {p.role_pre}")
             if p.group_color == p.other_group_color and \
                     p.group_color != p.other_token_color and \
                     p.role_pre == 'Producer':
@@ -373,6 +431,8 @@ class PostResultsWaitPage(WaitPage):
 
     def is_displayed(self):
         return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
+
+    logger.debug("<- Exiting PostResultsWaitPage")
 
 
 page_sequence = [

@@ -5,8 +5,10 @@ from otree.api import (
 import random
 import copy
 import json
+from .project_logger import get_logger
 from .automated_trader import AutomatedTrader
 
+logger = get_logger('models.py')
 
 class ContextSeed:
     """
@@ -49,7 +51,9 @@ class Subsession(BaseSubsession):
     possible_fc_transactions = models.IntegerField()
     fc_transaction_percent = models.StringField()
     # fc_transaction_percent = models.IntegerField()
-    
+
+    logger.debug("-> Entering Subsession")
+
     def creating_session(self):
 
         if self.round_number == 1:
@@ -63,7 +67,7 @@ class Subsession(BaseSubsession):
                 matching_file = json.load(json_data)
 
             if self.round_number == 1:
-                print('starting create subsession')
+                logger.debug(f"70: create subsession")
                 #TODO: edit following lines for grouping
 
                 # puts players into groups of size players_per_group
@@ -81,7 +85,7 @@ class Subsession(BaseSubsession):
                 self.session.vars['pairs'] = []
 
                 for r in range(Constants.num_rounds):
-                    print('starting round for humans', r + 1)
+                    logger.debug(f"88: starting round for humans {r + 1}")
                     # maps traders to their trading partners
                     # (group_id, player_id) <=> (group_id, player_id)
                     # so that a player can look up who their trading partner is
@@ -90,54 +94,55 @@ class Subsession(BaseSubsession):
                     groups = []
                     current_matchings = matching_file["matchings"][r]
                     humans_matchings = current_matchings["humans"] # matchings per group for humans
-                    print("DEBUG: Starting human players pairing")
+                    logger.debug("97: Starting human players pairing")
                     for gi in range(round(n_groups/2)): # gi: id of a group
                         # humans paired with other humans
                         for player_id_in_group in range(Constants.players_per_group):
                             current_matching = humans_matchings[f"{player_id_in_group}"]
                             # creating the pairs for human matchings
                             if current_matching["partner_type"] == "human":
-                                print("DEBUG: human pairing")
-                                print(f"DEBUG: Pairs at beginning of Loop = {pairs}")
+                                logger.debug("104: human pairing")
+                                logger.info(f"Pairs at beginning of Loop = {pairs}")
                                 partner_id_in_group = current_matching["partner_id"]
                                 pairs[(gi, player_id_in_group)] = (gi, partner_id_in_group)
-                                print(f"DEBUG: Pairs during Loop = {pairs}")
+                                logger.info(f"Pairs during Loop = {pairs}")
 
                             elif current_matching["partner_type"] == "bot":
-                                print("DEBUG: bot pairing")
-                                print(f"DEBUG: Pairs at beginning of Loop = {pairs}")
+                                logger.debug("111: bot pairing")
+                                logger.info(f"Pairs at beginning of Loop = {pairs}")
                                 partner_id_in_group = current_matching["partner_id"]
                                 pairs[(gi, player_id_in_group)] = (gi + round(n_groups/2), partner_id_in_group) # bots group are other half
-                                print(f"DEBUG: Pairs during Loop = {pairs}")
+                                logger.info(f"Pairs during Loop = {pairs}")
                             else:
-                                print(f"DEBUG: Undefined partner type = {current_matching['partner_type']}")
+                                logger.info(f"Undefined partner type = {current_matching['partner_type']}")
 
-                        print(f"DEBUG: Pairs at end of Loop = {pairs}")
-                        print(f"DEBUG: ------------------------------")
+                        logger.info(f"Pairs at end of Loop = {pairs}")
+                        logger.info(f"------------------------------")
 
                     self.session.vars['pairs'].append(pairs)
 
                 # define roles for human players (producer/consumer),
+                logger.debug(f"125: define roles for human players (producer/consumer)")
                 for g_index, g in enumerate(self.get_groups()):   
                     # whatever number (p_index) the player is defines role
                     for p_index, p in enumerate(g.get_players()):
-                        print(f"DEBUG: Normal Player: {p_index}")
+                        logger.info(f"Normal Player: {p_index}")
                         p.participant.vars['group_color'] = Constants.red
-                        print(f"DEBUG: Normal Player Color: {p.participant.vars['group_color']}")
+                        logger.info(f"Normal Player Color: {p.participant.vars['group_color']}")
                         p.participant.vars['group'] = g_index
 
                         # assigning the tokens
                         current_matchings = matching_file["matchings"][self.round_number - 1]
                         humans_matchings = current_matchings["humans"] # matchings per group for bots
-                        print(f"DEBUG: p_index = {p_index}")
+                        logger.info(f"p_index = {p_index}")
                         p.participant.vars['token'] = humans_matchings[f"{p_index}"]["item"]
-                        print(f"DEBUG: Normal Player Token: {p.participant.vars['token']}")
+                        logger.info(f"Normal Player Token: {p.participant.vars['token']}")
                         
-                        print(f"DEBUG: Normal Player Endowment: {p.participant.payoff}")
+                        logger.info(f"Normal Player Endowment: {p.participant.payoff}")
                         p.participant.payoff += Constants.endowment
-                        print(f"DEBUG: Normal Player Endowment +=: {p.participant.payoff}")
+                        logger.info(f"Normal Player Endowment +=: {p.participant.payoff}")
 
-                    print(f"DEBUG: -----------------------------------------")
+                    logger.info(f"-----------------------------------------")
 
                 # BOTS 
                 self.session.vars['automated_traders'] = {}               
@@ -146,66 +151,66 @@ class Subsession(BaseSubsession):
                 # only create bots if the bot treatment is on
 
                 if self.session.config['automated_traders']:
-                    print('starting create bots')
+                    logger.debug('153: starting create bots')
                     for gi in range(n_groups // 2, n_groups):
                         for pi in range(Constants.number_of_bots): # pi: bot player id in group
-                            print(f"DEBUG: Automated trader of group {gi}: {pi}")
+                            logger.info(f"Automated trader of group {gi}: {pi}")
                             trader = AutomatedTrader(self.session, pi + 1,
                                 Constants.num_rounds, Constants.players_per_group)
-                            print(f"DEBUG: Automated trader: {trader}")
+                            logger.info(f"Automated trader: {trader}")
                             trader.participant.vars['group_color'] = Constants.blue
-                            print(f"DEBUG: Automated trader color: {trader.participant.vars['group_color']}")
+                            logger.info(f"Automated trader color: {trader.participant.vars['group_color']}")
                             trader.participant.vars['group'] = gi
-                            print(f"DEBUG: Automated trader endowment: {trader.participant.payoff}")
+                            logger.info(f"Automated trader endowment: {trader.participant.payoff}")
                             trader.participant.payoff += Constants.endowment
-                            print(f"DEBUG: Automated trader endowment +=: {trader.participant.payoff}")
+                            logger.info(f"Automated trader endowment +=: {trader.participant.payoff}")
                             
                             # assigning the tokens
                             current_matchings = matching_file["matchings"][self.round_number - 1]
                             bots_matchings = current_matchings["bots"] # matchings per group for bots
-                            print(f"DEBUG: pi (bot index) = {pi}")
+                            logger.info(f"pi (bot index) = {pi}")
                             trader.participant.vars['token'] = bots_matchings[f"{pi}"]["item"]
-                            print(f"DEBUG: Automated trader token: {trader.participant.vars['token']}")
+                            logger.info(f"Automated trader token: {trader.participant.vars['token']}")
                             
                             trader.dump_round_data()
                             self.session.vars['automated_traders'][(gi, pi)] = trader
-                            print(f"DEBUG: -----------------------------------------")
+                            logger.info(f"-----------------------------------------")
 
                     for r in range(Constants.num_rounds):
-                        print('starting round for bots', r + 1)
+                        print('179: starting round for bots', r + 1)
                         pairs = {}
                         groups = []
-                        print(f"DEBUG: matching_file[matchings][r] = {matching_file['matchings'][r]} ")
+                        logger.info(f"182: matching_file[matchings][r] = {matching_file['matchings'][r]} ")
                         current_matchings = matching_file["matchings"][r]
                         bots_matchings = current_matchings["bots"] # matchings per group for humans
                         
-                        print("DEBUG: Starting bot players pairing")
+                        logger.debug("186: Starting bot players pairing")
                         for gi in range(n_groups // 2, n_groups): # gi: id of a group
                             # humans paired with other humans
                             for player_id_in_group in range(Constants.number_of_bots):
                                 current_matching = bots_matchings[f"{player_id_in_group}"]
                                 # creating the pairs for human matchings
                                 if current_matching["partner_type"] == "bot":
-                                    print("DEBUG: bot-bot pairing")
-                                    print(f"DEBUG: Pairs at beginning of Loop = {pairs}")
+                                    logger.debug("bot-bot pairing")
+                                    logger.info(f"Pairs at beginning of Loop = {pairs}")
                                     partner_id_in_group = current_matching["partner_id"]
                                     pairs[(gi, player_id_in_group)] = (gi, partner_id_in_group)
-                                    print(f"DEBUG: Pairs during Loop = {pairs}")
+                                    logger.info(f"Pairs during Loop = {pairs}")
 
                                 elif current_matching["partner_type"] == "human":
-                                    print("DEBUG: bot-human pairing")
-                                    print(f"DEBUG: Pairs at beginning of Loop = {pairs}")
+                                    logger.debug("bot-human pairing")
+                                    logger.info(f"Pairs at beginning of Loop = {pairs}")
                                     partner_id_in_group = current_matching["partner_id"]
                                     pairs[(gi, player_id_in_group)] = (gi - round(n_groups/2), partner_id_in_group) # humans group are first half
-                                    print(f"DEBUG: Pairs during Loop = {pairs}")
+                                    logger.info(f"Pairs during Loop = {pairs}")
                                 else:
-                                    print(f"DEBUG: Undefined partner type = {current_matching['partner_type']}")                                
+                                    logger.info(f"Undefined partner type = {current_matching['partner_type']}")                                
 
-                        print(f"DEBUG: ----------------------------------------------")
+                        logger.info(f"----------------------------------------------")
 
                         # assigning pairs for bots
                         self.session.vars['pairs'][r] = {**self.session.vars['pairs'][r], **pairs}
-                        print(f"DEBUG: total pairs round {r} = {self.session.vars['pairs']}")
+                        logger.info(f"212: total pairs round {r} = {self.session.vars['pairs']}")
 
             else:
                 self.group_like_round(1) # to keep the players assignment to a group in rest of rounds
@@ -234,19 +239,21 @@ class Subsession(BaseSubsession):
                     # a way to pair people given certain probabilities of
                     # getting paired within your group or within the other group
                     self.session.vars['pairs'] = []
+                    logger.debug("241: create random pairings")
                     for r in range(Constants.num_rounds):
-                        print('starting round', r)
+                        logger.info(f"starting round {r}")
                         # maps traders to their trading partners
                         # (group_id, player_id) <=> (group_id, player_id)
                         # so that a player can look up who their trading partner is
                         # in this map
                         pairs = {}
                         groups = []
+                        logger.debug("250: mapping traders to their trading partners")
                         for gi in range(n_groups): # gi: id of a group
                             # create player ids in group
                             # ex: 1,2,3,4
 
-                            print(f"DEBUG: Group {gi}")
+                            logger.info(f"Group {gi}")
 
                             #random.seed(123) # fixed initial random matching
                             #TODO: test fixed random matching
@@ -255,9 +262,9 @@ class Subsession(BaseSubsession):
                             # shuffle player numbers
                             # ex: 1,3,2,4
                             
-                            print(f"DEBUG: Group members = {g}")
+                            logger.info(f"Group members = {g}")
                             random.shuffle(g)
-                            print(f"DEBUG: Group members after shuffling = {g}")
+                            logger.info(f"Group members after shuffling = {g}")
 
                             # NOTE: self.session.config['probability_of_same_group'] times
                             # Constants.players_per_group needs to cleanly divide 2.
@@ -275,13 +282,14 @@ class Subsession(BaseSubsession):
                             # pairing homogeneous
                             # ex: (0,1) <=> (0,3)
                             #     (0,3) <=> (0,1)
+                            logger.debug("284: pairing homogeneous")
                             for i in range(0, index, 2):
-                                print(f"DEBUG: Pairs at beginning of Loop = {pairs}")
+                                logger.info(f"Pairs at beginning of Loop = {pairs}")
                                 pairs[(gi, g_sample_homogeneous[i])] = (gi, g_sample_homogeneous[i + 1])
-                                print(f"DEBUG: Pairs at middle of Loop = {pairs}")
+                                logger.info(f"Pairs at middle of Loop = {pairs}")
                                 pairs[(gi, g_sample_homogeneous[i + 1])] = (gi, g_sample_homogeneous[i])    
-                                print(f"DEBUG: Pairs at end of Loop = {pairs}")
-                                print(f"DEBUG: ------------------------------")
+                                logger.info(f"Pairs at end of Loop = {pairs}")
+                                logger.info(f"------------------------------")
 
 
                             # store the heterogeneous players so they can be paired later
@@ -289,18 +297,18 @@ class Subsession(BaseSubsession):
 
                         # pair traders between groups
                         # randomize trader order within each group
-        #                print(groups)
+                        logger.debug("299: pairing heterogeneous")
                         for gi in range(n_groups // 2):
                             oi = gi + n_groups // 2 # other index, oi: group of automated traders
                             
                             random.shuffle(groups[gi])
                             (groups[oi])
                             for i in range(len(groups[gi])):
-                                print(f"DEBUG: Other pair matching at beginning of Loop = {pairs}")
+                                logger.info(f"Other pair matching at beginning of Loop = {pairs}")
                                 pairs[(gi, groups[gi][i])] = (oi, groups[oi][i])
-                                print(f"DEBUG: Other pair matching at middle of Loop = {pairs}")
+                                logger.info(f"Other pair matching at middle of Loop = {pairs}")
                                 pairs[(oi, groups[oi][i])] = (gi, groups[gi][i])
-                                print(f"DEBUG: Other pair matching at end of Loop = {pairs}")
+                                logger.info(f"Other pair matching at end of Loop = {pairs}")
         #               #     g = []
         #
         #
@@ -335,7 +343,7 @@ class Subsession(BaseSubsession):
         #                    pairs[gg[1]] = gg[0]
         #
                         self.session.vars['pairs'].append(pairs)
-                        print(f"DEBUG: pairs = {self.session.vars['pairs']}")
+                        logger.info(f"pairs = {self.session.vars['pairs']}")
                     # if there is only 1 group, then we can do another loop after this
                     # one and do the exact same shit, except instantiating bots
                     # instead of getting players with p.
@@ -348,6 +356,7 @@ class Subsession(BaseSubsession):
                     # color will not suffice anymore.
 
                     # BOTS
+                    logger.debug("358: creating bots")
                     self.session.vars['automated_traders'] = {}
                     # automated traders are always in 2nd half of groups
 
@@ -358,36 +367,36 @@ class Subsession(BaseSubsession):
                         print('starting create bots')
                         for gi in range(n_groups // 2, n_groups):
                             group_color = Constants.blue
-                            print(f"DEBUG: Automated trader group: {gi}")
+                            logger.info(f"Automated trader group: {gi}")
                             roles = [Constants.trade_good for n in range(Constants.players_per_group // 2)]
-                            print(f"DEBUG: Automated trader roles: {roles}")
+                            logger.info(f"Automated trader roles: {roles}")
                             roles += [group_color for n in range(Constants.players_per_group // 2)]
-                            print(f"DEBUG: Automated trader roles after +=: {roles}")
+                            logger.info(f"Automated trader roles after +=: {roles}")
                             
                             random.shuffle(roles)
-                            print(f"DEBUG: Automated trader roles after shuffling: {roles}")
+                            logger.info(f"Automated trader roles after shuffling: {roles}")
 
                             for pi in range(Constants.players_per_group):
-                                print(f"DEBUG: Automated trader of group {gi}: {pi}")
+                                logger.info(f"Automated trader of group {gi}: {pi}")
                                 trader = AutomatedTrader(self.session, pi + 1,
                                     Constants.num_rounds, Constants.players_per_group)
-                                print(f"DEBUG: Automated trader: {trader}")
+                                logger.info(f"Automated trader: {trader}")
                                 trader.participant.vars['group_color'] = group_color
-                                print(f"DEBUG: Automated trader color: {group_color}")
+                                logger.info(f"Automated trader color: {group_color}")
                                 trader.participant.vars['group'] = gi
-                                print(f"DEBUG: Automated trader endowment: {trader.participant.payoff}")
+                                logger.info(f"Automated trader endowment: {trader.participant.payoff}")
                                 trader.participant.payoff += Constants.endowment
-                                print(f"DEBUG: Automated trader endowment +=: {trader.participant.payoff}")
+                                logger.info(f"Automated trader endowment +=: {trader.participant.payoff}")
                                 trader.participant.vars['token'] = roles[pi]
-                                print(f"DEBUG: Automated trader token: {trader.participant.vars['token']}")
+                                logger.info(f"Automated trader token: {trader.participant.vars['token']}")
                                 trader.dump_round_data()
                                 self.session.vars['automated_traders'][(gi, pi)] = trader
-                                print(f"DEBUG: -----------------------------------------")
+                                logger.info(f"-----------------------------------------")
 
-                            print(f"DEBUG: ---------------------------------------------")
+                            logger.info(f"---------------------------------------------")
 
                     # player groups
-                    print('start create players')
+                    logger.debug("398: create player groups")
                     for g_index, g in enumerate(self.get_groups()):
                         group_color = Constants.red
 
@@ -395,30 +404,30 @@ class Subsession(BaseSubsession):
                         # ensuring half are producers and half are consumers
                         # denotes half with a trade good
                         # denotes half with group color
-                        print(f"DEBUG: Normal Group: {g_index}")
+                        logger.info(f"Normal Group: {g_index}")
                         roles = [Constants.trade_good for n in range(Constants.players_per_group // 2)]
-                        print(f"DEBUG: Normal Group roles: {roles}")
+                        logger.info(f"Normal Group roles: {roles}")
                         roles += [group_color for n in range(Constants.players_per_group // 2)]
-                        print(f"DEBUG: Normal Group roles +=: {roles}")
+                        logger.info(f"Normal Group roles +=: {roles}")
 
                         random.shuffle(roles)
-                        print(f"DEBUG: Normal Group roles after shuffle: {roles}")
+                        logger.info(f"Normal Group roles after shuffle: {roles}")
 
                         # set each player's group color, and starting token (which
                         # determines who is going to be a producer vs consumer
                         # whatever number (p_index) the player is defines role
                         for p_index, p in enumerate(g.get_players()):
-                            print(f"DEBUG: Normal Player: {p_index}")
+                            logger.info(f"Normal Player: {p_index}")
                             p.participant.vars['group_color'] = group_color
-                            print(f"DEBUG: Normal Player Color: {p.participant.vars['group_color']}")
+                            logger.info(f"Normal Player Color: {p.participant.vars['group_color']}")
                             p.participant.vars['group'] = g_index
                             p.participant.vars['token'] = roles[p_index]
-                            print(f"DEBUG: Normal Player Token: {p.participant.vars['token']}")
-                            print(f"DEBUG: Normal Player Endowment: {p.participant.payoff}")
+                            logger.info(f"Normal Player Token: {p.participant.vars['token']}")
+                            logger.info(f"Normal Player Endowment: {p.participant.payoff}")
                             p.participant.payoff += Constants.endowment
-                            print(f"DEBUG: Normal Player Endowment +=: {p.participant.payoff}")
+                            logger.info(f"Normal Player Endowment +=: {p.participant.payoff}")
 
-                        print(f"DEBUG: -----------------------------------------")
+                        logger.info(f"-----------------------------------------")
                     
                 else:
                     self.group_like_round(1)
@@ -427,11 +436,16 @@ class Subsession(BaseSubsession):
                 self.fc_transactions = 0
                 #print(self.session.vars['pairs'])
 
+    logger.debug("<- Exiting Subsession")
+
 class Group(BaseGroup):
-    pass
+    logger.debug("-> Entering Subsession")
+    logger.debug("<- Exiting Subsession")
     
 
 class Player(BasePlayer):
+    logger.debug("-> Entering Player")
+
     # For detecting mturk/online bots in this section of the game
     trading = models.LongStringField(blank=True)
 
@@ -461,3 +475,5 @@ class Player(BasePlayer):
                 
     def set_payoffs(self, round_payoff):
         self.payoff = round_payoff
+
+    logger.debug("<- Exiting Player")
