@@ -285,15 +285,21 @@ class Results(Page):
             if self.player.role_pre == 'Consumer':
 
                 tax_consumer = c(0)
+                logger.info(f"tax_consumer = {tax_consumer}")
                 logger.info(f"self.player.token_color = {self.player.token_color}")
                 logger.info(f"self.player.other_group_color = {self.player.other_group_color}")
                 logger.info(f"self.player.group_color = {self.player.group_color}")
+                logger.info(f"self.session.config['foreign_tax'] = {self.session.config['foreign_tax']}")
+                logger.info(f"self.session.config['percent_foreign_tax_consumer'] = {self.session.config['percent_foreign_tax_consumer']}")
                 if self.player.token_color != self.player.other_group_color and \
                         self.player.group_color == self.player.other_group_color:
                     tax_consumer += self.session.config['foreign_tax'] \
-                        * self.session.config['percent_foreign_tax_consumer']
+                        * round(self.session.config['percent_foreign_tax_consumer'], 1)
+                    logger.info(f"tax_consumer after change = {tax_consumer}")
                     self.player.tax_paid = tax_consumer
+                    logger.info(f"self.player.tax_paid consumer = {self.player.tax_paid}")
                 round_payoff += Constants.reward - tax_consumer
+                logger.info(f"new round_payoff consumer = {round_payoff}")
                 
 
             # else if the player is the consumer, opposite
@@ -301,16 +307,21 @@ class Results(Page):
             else:
                 logger.debug("else if the player is the consumer, opposite")
                 tax_producer = c(0)
+                logger.info(f"tax_producer = {tax_producer}")
                 logger.info(f"self.player.token_color = {self.player.token_color}")
                 logger.info(f"self.player.other_group_color = {self.player.other_group_color}")
                 logger.info(f"self.player.group_color = {self.player.group_color}")
-
+                logger.info(f"self.session.config['foreign_tax'] = {self.session.config['foreign_tax']}")
+                logger.info(f"self.session.config['percent_foreign_tax_producer'] = {self.session.config['percent_foreign_tax_producer']}")
                 if self.player.group_color != self.player.other_token_color and \
                         self.player.group_color == self.player.other_group_color:
                     tax_producer += self.session.config['foreign_tax'] \
-                        * self.session.config['percent_foreign_tax_producer']
+                        * round(self.session.config['percent_foreign_tax_producer'], 1)
+                    logger.info(f"tax_producer = {tax_producer}")
                     self.player.tax_paid = tax_producer
+                    logger.info(f"self.player.tax_paid producer = {self.player.tax_paid}")
                 round_payoff -= tax_producer
+                logger.info(f"new round_payoff producer = {round_payoff}")
 
         else:
             self.player.trade_succeeded = False
