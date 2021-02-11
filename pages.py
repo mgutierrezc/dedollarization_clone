@@ -37,11 +37,15 @@ class Introduction(Page):
         if store_cost_hom != 0 or store_cost_het != 0:
             storage_costs = True
 
+        tax_producer = perc_f_tax_producer * foreign_tax
+        tax_consumer = perc_f_tax_consumer * foreign_tax
+
         return dict(participant_id=self.participant.label, exchange_rate=exchange_rate, players_per_group=players_per_group,
                     perc_f_tax_consumer=perc_f_tax_consumer,
                     perc_f_tax_producer=perc_f_tax_producer, foreign_tax=foreign_tax, store_cost_hom=store_cost_hom,
                     store_cost_het=store_cost_het, show_foreign_transactions=show_foreign_transactions,
-                    perc_taxes=perc_taxes, storage_costs=storage_costs)
+                    perc_taxes=perc_taxes, storage_costs=storage_costs,
+                    tax_producer=tax_producer, tax_consumer=tax_consumer)
     logger.debug("<- Exiting Introduction")
 
 
@@ -284,14 +288,14 @@ class Results(Page):
             logger.info(f"self.player.role_pre is {self.player.role_pre}")
             if self.player.role_pre == 'Consumer':
 
-                tax_consumer = c(0)
+                tax_consumer = 0
                 logger.info(f"self.player.token_color = {self.player.token_color}")
                 logger.info(f"self.player.other_group_color = {self.player.other_group_color}")
                 logger.info(f"self.player.group_color = {self.player.group_color}")
                 if self.player.token_color != self.player.other_group_color and \
                         self.player.group_color == self.player.other_group_color:
-                    tax_consumer += self.session.config['foreign_tax'] \
-                        * self.session.config['percent_foreign_tax_consumer']
+                    tax_consumer += round(self.session.config['foreign_tax'] \
+                        * self.session.config['percent_foreign_tax_consumer'], 1)
                     self.player.tax_paid = tax_consumer
                 round_payoff += Constants.reward - tax_consumer
                 
@@ -300,15 +304,15 @@ class Results(Page):
                 
             else:
                 logger.debug("else if the player is the consumer, opposite")
-                tax_producer = c(0)
+                tax_producer = 0
                 logger.info(f"self.player.token_color = {self.player.token_color}")
                 logger.info(f"self.player.other_group_color = {self.player.other_group_color}")
                 logger.info(f"self.player.group_color = {self.player.group_color}")
 
                 if self.player.group_color != self.player.other_token_color and \
                         self.player.group_color == self.player.other_group_color:
-                    tax_producer += self.session.config['foreign_tax'] \
-                        * self.session.config['percent_foreign_tax_producer']
+                    tax_producer += round(self.session.config['foreign_tax'] \
+                        * self.session.config['percent_foreign_tax_producer'], 1)
                     self.player.tax_paid = tax_producer
                 round_payoff -= tax_producer
 
