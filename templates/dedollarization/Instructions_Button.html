@@ -29,7 +29,8 @@ $(document).ready(function() {
 
 <div id="expand" class="instructions well well-lg"> {# paper effect starts #}
 
-<p>
+    {% include Constants.instructions_template %}    
+<!-- <p>
     Lee con cuidado estas instrucciones: tus decisiones
     y las de los demás participantes del experimento determinarán tu pago. Dicho pago será proporcional a los puntos
     que acumules a lo largo del experimento. A su término, los puntos acumulados se transformarán en soles (S/) a la
@@ -92,7 +93,7 @@ $(document).ready(function() {
             {% if treatment == 3 %}
                 En particular, se mostrará <strong>la tasa de aceptación de la ficha azul entre personas del equipo rojo.</strong><br>
             {% endif %}
-        El pago de la sesión es el acumulado de puntos de las 50 rondas de interacción.
+        El pago de la sesión es el acumulado de puntos de las 50 rondas de interacción. -->
 
 </p>
 </div>   {#  paper effect ends#}
