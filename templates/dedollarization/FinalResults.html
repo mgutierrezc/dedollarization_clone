@@ -1,0 +1,42 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+{% load staticfiles otree %}
+
+{% block title %}
+Pagos finales
+{% endblock %}
+
+{% block content %}
+<style type="text/css">
+  .tg  {border-collapse:collapse;border-spacing:0;}
+  .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+    overflow:hidden;padding:10px 5px;word-break:normal;}
+  .tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+    font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+  .tg .tg-1wig{font-weight:bold;text-align:left;vertical-align:top}
+  .tg .tg-kwiq{border-color:inherit;color:#000000;text-align:left;vertical-align:top}
+  .tg .tg-fymr{border-color:inherit;font-weight:bold;text-align:left;vertical-align:top}
+  .tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+  .tg .tg-0lax{text-align:left;vertical-align:top}
+  </style>
+  <table class="tg">
+  <thead>
+    <tr>
+      <th class="tg-fymr">Pago por participación</th>
+      <th class="tg-0pky">{{ participation_fee }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="tg-fymr">Pagos finales de interacción</td>
+      <td class="tg-kwiq">{{ payoff_money }} ({{ player.participant.payoff }})</td>
+    </tr>
+    <tr>
+      <td class="tg-1wig">Descuento por timeouts</td>
+      <td class="tg-0lax">{{ total_timeouts }} timeouts = {{ total_discounts_money }} ({{ total_discounts_points }})</td>
+    </tr>
+  </tbody>
+  </table>
+<br>
+  {% next_button %}
+{% endblock %}

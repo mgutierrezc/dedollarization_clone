@@ -10,6 +10,7 @@ class Introduction(Page):
     logger.debug("-> Entering Introduction")
 
     def is_displayed(self):
+        self.participant.vars["total_timeouts"] = 0
         return self.round_number == 1 and self.participant.vars['MobilePhones'] is False
 
     def vars_for_template(self):
@@ -169,6 +170,9 @@ class Trade(Page):
             }
 
     def before_next_page(self):
+        if self.round_number == 1: # defining the participant var at 1st round
+            self.participant.vars["total_timeouts"] = 0
+
         if self.timeout_happened:
             self.player.player_timed_out += 1
             ########33## TESTING PURPOSES ONLY
@@ -179,6 +183,9 @@ class Trade(Page):
 
             ###### END TESTING PURPOSES ONLY
             self.player.trade_attempted = False
+        
+        # counting the total timeouts until this moment
+        self.participant.vars["total_timeouts"] += self.player.player_timed_out
 
     def is_displayed(self):
         return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
@@ -446,10 +453,35 @@ class PostResultsWaitPage(WaitPage):
     logger.debug("<- Exiting PostResultsWaitPage")
 
 
+class FinalResults(Page):
+    logger.debug("-> Entering FinalResults")
+
+    def vars_for_template(self):
+        self.player.total_timeouts = self.participant.vars["total_timeouts"]
+        self.player.total_discounts += self.player.total_timeouts*c(1)
+        
+        # converting points to real money
+        payoff_money = self.participant.payoff.to_real_world_currency(self.player.session)
+        total_discounts_money = self.player.total_discounts.to_real_world_currency(self.player.session)
+
+        return {"participation_fee": self.session.config["participation_fee"],
+                "payoff_money": payoff_money,
+                "total_timeouts": self.player.total_timeouts,
+                "total_discounts_points": self.player.total_discounts,
+                "total_discounts_money": total_discounts_money}
+
+    def is_displayed(self):
+        return self.round_number == Constants.num_rounds
+
+    def before_next_page(self):
+        self.player.payoff -= self.player.total_discounts # discounting 1 point
+    
+    logger.debug("<- Exiting FinalResults")
+
 page_sequence = [
-    Introduction,
     Trade,
     ResultsWaitPage,
     Results,
     PostResultsWaitPage,
+    FinalResults
 ]
