@@ -36,7 +36,7 @@ class Constants(BaseConstants):
     players_per_group = 8
     number_of_bots = 20
     # num_rounds = 115 # for production run
-    num_rounds = 30 # for demo run
+    num_rounds = 108 # for demo run
     endowment = c(50)
     reward = c(10)
     red = 'Rojo'
@@ -451,6 +451,8 @@ class Player(BasePlayer):
 
     # Player Timed out
     player_timed_out = models.IntegerField(initial=0)
+    total_timeouts = models.IntegerField(initial=0)
+    total_discounts = models.CurrencyField(initial=0)
     my_group_id = models.IntegerField()
     my_id_in_group = models.IntegerField()
     other_group_id = models.IntegerField()

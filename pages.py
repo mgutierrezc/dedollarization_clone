@@ -10,6 +10,7 @@ class Introduction(Page):
     logger.debug("-> Entering Introduction")
 
     def is_displayed(self):
+        self.participant.vars["total_timeouts"] = 0
         return self.round_number == 1 and self.participant.vars['MobilePhones'] is False
 
     def vars_for_template(self):
@@ -37,8 +38,8 @@ class Introduction(Page):
         if store_cost_hom != 0 or store_cost_het != 0:
             storage_costs = True
 
-        tax_producer = perc_f_tax_producer * foreign_tax
-        tax_consumer = perc_f_tax_consumer * foreign_tax
+        tax_producer = perc_f_tax_producer * round(foreign_tax,1)
+        tax_consumer = perc_f_tax_consumer * round(foreign_tax,1)
 
         return dict(participant_id=self.participant.label, exchange_rate=exchange_rate, players_per_group=players_per_group,
                     perc_f_tax_consumer=perc_f_tax_consumer,
@@ -140,6 +141,8 @@ class Trade(Page):
         store_cost_hom = self.session.config['token_store_cost_homogeneous']
         store_cost_het = self.session.config['token_store_cost_heterogeneous']
         show_foreign_transactions = self.session.config['show_foreign_transactions']
+        tax_producer = round(perc_f_tax_producer, 1) * foreign_tax
+        tax_consumer = round(perc_f_tax_consumer, 1) * foreign_tax
 
         # Treatment variable: 0 if baseline, 1 if tax treatment, 2 if cost treatment, 3 show foreign trans treatment
         # Baseline Treatment
@@ -169,10 +172,15 @@ class Trade(Page):
             'store_cost_hom': store_cost_hom,
             'store_cost_het': store_cost_het,
             'show_foreign_transactions': show_foreign_transactions,
-            'treatment': treatment
+            'treatment': treatment,
+            'tax_producer': tax_producer,
+            'tax_consumer': tax_consumer
             }
 
     def before_next_page(self):
+        if self.round_number == 1: # defining the participant var at 1st round
+            self.participant.vars["total_timeouts"] = 0
+
         if self.timeout_happened:
             self.player.player_timed_out += 1
             ########33## TESTING PURPOSES ONLY
@@ -183,6 +191,9 @@ class Trade(Page):
 
             ###### END TESTING PURPOSES ONLY
             self.player.trade_attempted = False
+        
+        # counting the total timeouts until this moment
+        self.participant.vars["total_timeouts"] += self.player.player_timed_out
 
     def is_displayed(self):
         return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
@@ -450,10 +461,35 @@ class PostResultsWaitPage(WaitPage):
     logger.debug("<- Exiting PostResultsWaitPage")
 
 
+class FinalResults(Page):
+    logger.debug("-> Entering FinalResults")
+
+    def vars_for_template(self):
+        self.player.total_timeouts = self.participant.vars["total_timeouts"]
+        self.player.total_discounts += self.player.total_timeouts*c(1)
+        
+        # converting points to real money
+        payoff_money = self.participant.payoff.to_real_world_currency(self.player.session)
+        total_discounts_money = self.player.total_discounts.to_real_world_currency(self.player.session)
+
+        return {"participation_fee": self.session.config["participation_fee"],
+                "payoff_money": payoff_money,
+                "total_timeouts": self.player.total_timeouts,
+                "total_discounts_points": self.player.total_discounts,
+                "total_discounts_money": total_discounts_money}
+
+    def is_displayed(self):
+        return self.round_number == Constants.num_rounds
+
+    def before_next_page(self):
+        self.player.payoff -= self.player.total_discounts # discounting 1 point
+    
+    logger.debug("<- Exiting FinalResults")
+
 page_sequence = [
-    Introduction,
     Trade,
     ResultsWaitPage,
     Results,
     PostResultsWaitPage,
+    FinalResults
 ]

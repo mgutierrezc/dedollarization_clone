@@ -1,31 +1,33 @@
 {% load otree %}
 
 <p>
-    Lee con cuidado estas instrucciones: tus decisiones
-    y las de los demás participantes del experimento determinarán tu pago. Dicho pago será proporcional a los puntos
-    que acumules a lo largo del experimento. A su término, los puntos acumulados se transformarán en soles (S/) a la
-    tasa de conversión 1 punto = S/ {{ exchange_rate }}. Adicionalmente, se te pagará S/ 5.00 solo por participar.
+    Por favor, lee con cuidado estas instrucciones: tus decisiones
+    y las de los demás participantes determinarán tu pago. Dicho pago será proporcional a los puntos
+    que acumules a lo largo del experimento. A su término, los puntos acumulados se transformarán en soles (S/) a una
+    tasa de conversión 1 sol por cada 50 puntos (1 punto = S/ {{ exchange_rate }}). Adicionalmente, se te pagará 
+    S/ 5,00 solo por participar.
     <br><br>
-    <h3>Rondas y Grupos</h3>
-    El bloque central de esta sesión consiste, en promedio, en 100 rondas del mismo tipo de interacción. Al inicio de la primera ronda,
-    se formarán grupos al azar. Cada grupo tendrá 8 personas. Los grupos son fijos. Es decir,
-    durante toda la sesión te mantendrás en el mismo grupo. Tu grupo se llamará grupo rojo. Las personas de tu grupo
-    interactúan entre sí y con agentes del grupo azul, quienes están representados por la computadora (son bots). En el grupo azul
-    hay 20 agentes.
+    <h3>Rondas y grupos</h3>
+    El bloque central de esta sesión consiste en, aproximadamente, 100 rondas del mismo tipo de interacción. 
+    El número exacto de rondas es aleatorio, pero en promedio es 100 rondas por sesión. Al inicio de la primera 
+    ronda, se formarán grupos al azar. Cada grupo tendrá 8 personas. Los grupos son fijos. Es decir, durante toda 
+    la sesión te mantendrás en el mismo grupo. El grupo de ocho personas al que perteneces se llamará Grupo Rojo. 
+    Las personas de tu Grupo Rojo interactúan entre sí y con 20 agentes del Grupo Azul. Todos los miembros del 
+    Grupo Azul son bots cuyo comportamiento se describe más adelante.
     <br><br>
-    <h3>Dotaciones iniciales</h3>
-    Cada participante de tu grupo empieza la primera ronda con una dotación de 50 puntos y con uno de dos objetos: una
-    ficha roja o un bien de consumo. La mitad de los integrantes del grupo Rojo reciben una ficha
-    roja, y la otra mitad restante recibirá un bien de consumo. Quiénes reciben
+    <h3>Dotaciones iniciales y ronda inicial</h3>
+    Cada persona participante empieza la primera ronda con una dotación de 50 puntos y con uno de dos objetos: una
+    ficha roja <img height="5%" width="5%" src="{% static "redCoin.png"%}"/> o un bien de consumo <img height="5%" width="5%" src="{% static "object.png"%}"/>.
+    La mitad de los integrantes del grupo Rojo reciben una ficha roja, y la otra mitad recibirá un bien de consumo. Quiénes reciben
     qué se determina al azar. La situación es análoga para el grupo azul, donde 10 agentes reciben de manera aleatoria
     una ficha azul y 10 reciben un bien de consumo.  La cantidad de cada objeto se mantiene fija a lo largo de todas las
     rondas.
     <br><br>
     <h3>Parejas al azar en cada ronda</h3>
     Al inicio de la ronda, cada miembro del grupo rojo es emparejado al azar con alguien de su grupo o del grupo azul.
-    La probabilidad de emparejarse con alguien del grupo rojo es 75% y con alguien del grupo azul es 25%.
+    <b>La probabilidad de emparejarse con alguien del grupo rojo es 75% y con alguien del grupo azul es 25%.</b>
     <br><br>
-    <h3>Decisión de Intercambio</h3>
+    <h3>Decisión de intercambio</h3>
     En cada ronda, el participante es informado del objeto que posee, el grupo de su socio y el objeto que este tiene.
     Algunos encuentros tienen posibilidad de intercambio y otros no. Solo hay posibilidad de intercambio si uno tiene
     una ficha y el otro tiene un bien de consumo. Por el contrario, si las dos personas tienen bienes de consumo, no
@@ -34,41 +36,51 @@
     Si las dos personas tienen fichas, tampoco pueden intercambiarlas. De ser
     posible intercambiar, ambos agentes deben decidir si desean intercambiar o no. Solamente si ambos agentes responden
     positivamente, la ficha y el bien de consumo se intercambian. Los agentes del grupo azul están automatizados (son bots) y siempre están dispuestos a intercambiar pero nunca aceptan fichas rojas.
-    El objeto con el que terminas una ronda es el mismo con el que inicias la siguiente.
+    El objeto con el que terminas una ronda es el mismo con el que inicias la siguiente. 
+    Ver la imagen de la pantalla de decisión en la siguiente figura.
     <br><br>
-
+    <img height="70%" width="70%" src="{% static "figura_1.png"%}"/> 
+    <br>
+    Los agentes del grupo azul están automatizados (son bots) y siempre están dispuestos a intercambiar pero nunca aceptan 
+    fichas rojas. 
+    Durante todas las rondas de interacción, tendrás en tu pantalla la información detallada 
+    <br><br>
     <h3>Pagos</h3>
-        Todos los participantes comienzan con 50 puntos.
-        En cada ronda, recibir una ficha otorga 0 puntos, sin importar si es roja o azul.
-        En contraste, recibir un bien de consumo de otro participante te otorga 10 puntos al momento de recibirlo.
+    Los pagos finales tienen los siguientes componentes.
+    <ol>
+        <li>Dotación inicial.- Todos los participantes comienzan con 50 puntos.</li>
+        <li>Ganancias de intercambio.- En cada ronda, recibir una ficha otorga 0 puntos, sin importar si es roja o azul.
+        En contraste, recibir un bien de consumo de otro participante te otorga 10 puntos solamente al momento de recibirlo.
         Es decir, el bien de consumo genera ganancia de puntos solo si se obtiene como resultado de un intercambio, sin importar de qué grupo provenga.
-        Si mantienes el mismo bien de consumo más de un periodo, no recibes puntos adicionales. <br><br>
-        {% if perc_taxes %}
-            <strong>Impuesto: </strong><br>
+        Si mantienes el mismo bien de consumo más de un periodo, no recibes puntos adicionales.</li>
+        <li>Impuestos.- Usar fichas azules entre agentes del grupo rojo está gravado.
             <ul>
-            <li>Usar fichas azules entre agentes del grupo rojo está gravado.</li>
-            <li>Si recibes una ficha azul de otro participante del grupo rojo, pagarás un impuesto de {{ tax_producer }} puntos.</li>
-            <li>Similarmente, si intercambias una ficha azul por un bien de consumo con otro participante del grupo
-                rojo, pagarás un impuesto de {{ tax_consumer }} puntos.</li>
+                <li>Usar fichas azules entre agentes del grupo rojo está gravado.</li>
+                <li>Si recibes una ficha azul de otro participante del grupo rojo, pagarás un impuesto de {{ tax_producer }} puntos.</li>
+                <li>Similarmente, si intercambias una ficha azul por un bien de consumo con otro participante del grupo
+                    rojo, pagarás un impuesto de {{ tax_consumer }} puntos.</li>
             </ul>
-        {% endif %}
-        
-        {% if storage_costs %}
-            <strong>Costo de almacenar: </strong><br>
+        </li>
+        <li>Costos de almacenar las fichas.- Si mantienes una ficha por más de una ronda, pagarás un costo de almacenamiento. 
+            Estos costos pueden ser distintos dependiendo del tipo de ficha. 
             <ul>
-            <li>Si mantienes una ficha por más de un periodo, pagarás un costo de almacenamiento.</li>
-            <li>Si mantienes una ficha roja, pagarás {{ store_cost_hom }} puntos.</li>
-            <li>Si mantienes una ficha azul, pagarás {{ store_cost_het }} puntos.</li>
+                <li>Si te quedas con una ficha roja en una ronda, pagarás {{ store_cost_hom }} puntos.</li>
+                <li>Si te quedas con una ficha azul en una ronda, pagarás {{ store_cost_het }} puntos.</li>
             </ul>
-        {% endif %}
-        <br>
-        Durante todas las rondas de interacción, tendrás en tu pantalla la información referida a las rondas anteriores.<br>
-            {% if show_foreign_transactions %}
+        </li>
+    </ol>
+        <br>        
+        Durante todas las rondas de interacción, tendrás en tu pantalla la información referida a las rondas anteriores.
+            <!-- {% if show_foreign_transactions %}
                 En particular, se mostrará <strong>la tasa de aceptación de la ficha azul entre personas del equipo rojo.</strong><br>
-            {% endif %}
-        El pago de la sesión es el acumulado de puntos de las rondas de interacción.
-
-
-
+            {% endif %} -->
+    
+    <br><br>        
+    <h3>Tiempo de decision y timeouts</h3>
+    Es importante que estés alerta a cuando te toca decidir, así la sesión no se extenderá innecesariamente. 
+    Cada pantalla de decisión está activa por <b>60 segundos</b>. Si no decides en ese tiempo, y la computadora pasa 
+    a la siguiente pantalla automáticamente, incurres en un “timeout”. Por cada timeout en el que incurras en 
+    toda la sesión, se te descontará un punto. Nota que la forma de <b>maximizar ganancias</b> en la interacción es 
+    teniendo <b>decisiones activas</b>.
 
 </p>
