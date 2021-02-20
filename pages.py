@@ -10,7 +10,6 @@ class Introduction(Page):
     logger.debug("-> Entering Introduction")
 
     def is_displayed(self):
-        self.participant.vars["total_timeouts"] = 0
         return self.round_number == 1 and self.participant.vars['MobilePhones'] is False
 
     def vars_for_template(self):
@@ -466,13 +465,14 @@ class FinalResults(Page):
 
     def vars_for_template(self):
         self.player.total_timeouts = self.participant.vars["total_timeouts"]
-        self.player.total_discounts += self.player.total_timeouts*c(1)
+        self.player.total_discounts = self.player.total_timeouts*c(1)
         
         # converting points to real money
         payoff_money = self.participant.payoff.to_real_world_currency(self.player.session)
         total_discounts_money = self.player.total_discounts.to_real_world_currency(self.player.session)
 
-        return {"participation_fee": self.session.config["participation_fee"],
+        return {'participant_id': self.participant.label,
+                "participation_fee": self.session.config["participation_fee"],
                 "payoff_money": payoff_money,
                 "total_timeouts": self.player.total_timeouts,
                 "total_discounts_points": self.player.total_discounts,
