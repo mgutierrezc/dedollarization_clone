@@ -466,7 +466,7 @@ class FinalResults(Page):
 
     def vars_for_template(self):
         self.player.total_timeouts = self.participant.vars["total_timeouts"]
-        self.player.total_discounts += self.player.total_timeouts*c(1)
+        self.player.total_discounts = self.player.total_timeouts*c(1)
         
         # converting points to real money
         payoff_money = self.participant.payoff.to_real_world_currency(self.player.session)
