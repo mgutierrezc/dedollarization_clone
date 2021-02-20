@@ -35,32 +35,38 @@ table.t2, th.t2, td.t2 {
 {% block content %}
 
 <style type="text/css">
-    .tg  {border-collapse:collapse;border-spacing:0;}
-    .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-      overflow:hidden;padding:10px 5px;word-break:normal;}
-    .tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-      font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-    .tg .tg-0lax{text-align:left;vertical-align:top}
-    .tg .tg-6n7w{color:#000000;font-weight:bold;text-align:left;vertical-align:top}
-    </style>
-    <table align="center" class="tg">
-    <thead>
-      <tr>
-        <th class="tg-0lax" colspan="2"><span style="font-weight:400;font-style:normal;text-decoration:none;color:#000;background-color:transparent">Impuesto por usar ficha azul entre personas rojas: {{ foreign_tax }} puntos</span></th>
-        <th class="tg-0lax"><span style="font-weight:400;font-style:normal;text-decoration:none;color:#000;background-color:transparent">Etiqueta de participante: <b>{{ participant_id }}</b></span></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="tg-0lax" colspan="2"><span style="font-weight:400;font-style:normal;text-decoration:none;color:#000;background-color:transparent">Costo de quedarte con una ficha roja: {{ store_cost_hom }} puntos</span></td>
-        <td class="tg-6n7w"><span style="font-weight:700;font-style:normal;text-decoration:none;background-color:transparent">Número de Ronda: {{ player.round_number }}</span></td>
-      </tr>
-      <tr>
-        <td class="tg-0lax" colspan="2"><span style="font-weight:400;font-style:normal;text-decoration:none;color:#000;background-color:transparent">Costo de quedarte con una ficha azul: {{ store_cost_het }} puntos</span></td>
-        <td class="tg-6n7w"><span style="font-weight:700;font-style:normal;text-decoration:none;background-color:transparent">Pago acumulado: {{ player.participant.payoff }}</span></td>
-      </tr>
-    </tbody>
-    </table>
+  .tg  {border-collapse:collapse;border-spacing:0;}
+  .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+    overflow:hidden;padding:10px 5px;word-break:normal;}
+  .tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+    font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+  .tg .tg-lboi{border-color:inherit;text-align:left;vertical-align:middle}
+  .tg .tg-t4zm{border-color:inherit;font-size:16px;text-align:center;vertical-align:middle}
+  .tg .tg-9wq8{border-color:inherit;text-align:center;vertical-align:middle}
+  .tg .tg-g7sd{border-color:inherit;font-weight:bold;text-align:left;vertical-align:middle}
+  </style>
+  <table align="center" class="tg">
+  <thead>
+    <tr>
+      <th class="tg-9wq8" colspan="2"><span style="font-weight:400;font-style:normal;text-decoration:none;color:#000;background-color:transparent">Impuesto por usar ficha azul entre personas rojas</span></th>
+      <th class="tg-t4zm" rowspan="2">Etiqueta de participante:<br><span style="font-weight:bold">{{ participant_id }}</span></th>
+    </tr>
+    <tr>
+      <td class="tg-lboi">Si recibes una ficha azul: <span style="font-weight:bold">{{ tax_producer }}</span></td>
+      <td class="tg-lboi">Si recibes un bien de consumo: <span style="font-weight:bold">{{ tax_consumer }}</span></td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="tg-9wq8" colspan="2"><span style="font-weight:400;font-style:normal;text-decoration:none;color:#000;background-color:transparent">Costo de quedarte con una ficha roja: {{ store_cost_hom }} puntos</span></td>
+      <td class="tg-g7sd"><span style="font-weight:700;font-style:normal;text-decoration:none;background-color:transparent">Número de Ronda: {{ player.round_number }}</span></td>
+    </tr>
+    <tr>
+      <td class="tg-9wq8" colspan="2"><span style="font-weight:400;font-style:normal;text-decoration:none;color:#000;background-color:transparent">Costo de quedarte con una ficha azul: {{ store_cost_het }} puntos</span></td>
+      <td class="tg-g7sd"><span style="font-weight:700;font-style:normal;text-decoration:none;background-color:transparent">Pago acumulado: {{ player.participant.payoff }}</span></td>
+    </tr>
+  </tbody>
+  </table>
 
     
 <br><br>
