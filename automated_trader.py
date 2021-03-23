@@ -225,6 +225,9 @@ class AutomatedTrader():
         logger.info(f"225: other_player.trade_attempted = {other_player.trade_attempted}")
         if self.trade_attempted and other_player.trade_attempted:
             logger.info(f"227: self.trade_succeeded is {self.trade_succeeded}")
+            logger.info(f"round number = {self.round_number}")
+            logger.info(f"id in group = {self.id_in_group}")
+            logger.info(f"other id in group = {other_player.id_in_group}")
             # only 1 player actually switches the goods
             if self.trade_succeeded is None:
                 # switch tokens

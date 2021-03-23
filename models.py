@@ -36,13 +36,13 @@ class Constants(BaseConstants):
     players_per_group = 8
     number_of_bots = 20
     # num_rounds = 115 # for production run
-    num_rounds = 6 # for demo run
+    num_rounds = 30 # for demo run
     endowment = c(50)
     reward = c(10)
     red = 'Rojo'
     blue = 'Azul'
     trade_good = 'Bien de Consumo'
-
+    
 
 class Subsession(BaseSubsession):
     # foreign transaction count for subsession
@@ -68,7 +68,6 @@ class Subsession(BaseSubsession):
 
             if self.round_number == 1:
                 logger.debug(f"70: create subsession")
-                #TODO: edit following lines for grouping
 
                 # puts players into groups of size players_per_group
                 self.group_randomly()
@@ -90,6 +89,7 @@ class Subsession(BaseSubsession):
                     # (group_id, player_id) <=> (group_id, player_id)
                     # so that a player can look up who their trading partner is
                     # in this map
+                    # 'r' is an index for the dictionaries within matching_file["matchings"]
                     pairs = {}
                     groups = []
                     current_matchings = matching_file["matchings"][r]
@@ -145,36 +145,43 @@ class Subsession(BaseSubsession):
                     logger.info(f"-----------------------------------------")
 
                 # BOTS 
-                self.session.vars['automated_traders'] = {}               
+                #TODO: add them an extra round for storing last round switches
+                self.session.vars['automated_traders'] = {}    # {round_#: {(group_id, bot_id): {"token":, "group_color": , 
+                                                               # "payoff": }}}
+
                 # automated traders are always in 2nd half of groups
                 ### ONLY CREATE BOTS IF BOT TREATMENT IS TURNED ON
                 # only create bots if the bot treatment is on
 
                 if self.session.config['automated_traders']:
                     logger.debug('153: starting create bots')
-                    for gi in range(n_groups // 2, n_groups):
-                        for pi in range(Constants.number_of_bots): # pi: bot player id in group
-                            logger.info(f"Automated trader of group {gi}: {pi}")
-                            trader = AutomatedTrader(self.session, pi + 1,
-                                Constants.num_rounds, Constants.players_per_group)
-                            logger.info(f"Automated trader: {trader}")
-                            trader.participant.vars['group_color'] = Constants.blue
-                            logger.info(f"Automated trader color: {trader.participant.vars['group_color']}")
-                            trader.participant.vars['group'] = gi
-                            logger.info(f"Automated trader endowment: {trader.participant.payoff}")
-                            trader.participant.payoff += Constants.endowment
-                            logger.info(f"Automated trader endowment +=: {trader.participant.payoff}")
-                            
-                            # assigning the tokens
-                            current_matchings = matching_file["matchings"][self.round_number - 1]
-                            bots_matchings = current_matchings["bots"] # matchings per group for bots
-                            logger.info(f"pi (bot index) = {pi}")
-                            trader.participant.vars['token'] = bots_matchings[f"{pi}"]["item"]
-                            logger.info(f"Automated trader token: {trader.participant.vars['token']}")
-                            
-                            trader.dump_round_data()
-                            self.session.vars['automated_traders'][(gi, pi)] = trader
-                            logger.info(f"-----------------------------------------")
+                    for round_num in range(1, Constants.num_rounds + 2):
+                        automated_traders = self.session.vars['automated_traders'][f"round_{round_num}"] = {}                        
+                        for gi in range(n_groups // 2, n_groups):
+                            for pi in range(Constants.number_of_bots): # pi: bot player id in group
+                                logger.info(f"Automated trader of group {gi}: {pi}")
+                                automated_traders[(gi, pi)] = {}
+                                automated_trader = automated_traders[(gi, pi)]
+                                #trader = AutomatedTrader(self.session, pi + 1,
+                                #    Constants.num_rounds, Constants.players_per_group)
+                                logger.info(f"Automated trader: {automated_trader}")
+                                automated_trader['group_color'] = Constants.blue
+                                logger.info(f"Automated trader color: {automated_trader['group_color']}")
+                                automated_trader['group'] = gi
+                                logger.info(f"Automated trader endowment: {automated_trader['payoff']}")
+                                automated_trader['payoff'] += Constants.endowment
+                                logger.info(f"Automated trader endowment +=: {automated_trader['payoff']}")
+                                
+                                # assigning the tokens
+                                if round_num < Constants.num_rounds + 1:
+                                    current_matchings = matching_file["matchings"][self.round_number - 1]
+                                    bots_matchings = current_matchings["bots"] # matchings per group for bots
+                                    logger.info(f"pi (bot index) = {pi}")
+                                    automated_trader['token'] = bots_matchings[f"{pi}"]["item"]
+                                    logger.info(f"Automated trader token: {automated_trader['token']}")
+                                    
+                                    logger.info(f"-----------------------------------------")
+
 
                     for r in range(Constants.num_rounds):
                         print('179: starting round for bots', r + 1)
@@ -255,8 +262,6 @@ class Subsession(BaseSubsession):
 
                             logger.info(f"Group {gi}")
 
-                            #random.seed(123) # fixed initial random matching
-                            #TODO: test fixed random matching
                             g = [i for i in range(Constants.players_per_group)] # g: member of a group
 
                             # shuffle player numbers
@@ -357,7 +362,6 @@ class Subsession(BaseSubsession):
 
                     # BOTS
                     logger.debug("358: creating bots")
-                    self.session.vars['automated_traders'] = {}
                     # automated traders are always in 2nd half of groups
 
                     ### ONLY CREATE BOTS IF BOT TREATMENT IS TURNED ON
@@ -377,20 +381,21 @@ class Subsession(BaseSubsession):
                             logger.info(f"Automated trader roles after shuffling: {roles}")
 
                             for pi in range(Constants.players_per_group):
+                                
                                 logger.info(f"Automated trader of group {gi}: {pi}")
-                                trader = AutomatedTrader(self.session, pi + 1,
-                                    Constants.num_rounds, Constants.players_per_group)
-                                logger.info(f"Automated trader: {trader}")
-                                trader.participant.vars['group_color'] = group_color
-                                logger.info(f"Automated trader color: {group_color}")
-                                trader.participant.vars['group'] = gi
-                                logger.info(f"Automated trader endowment: {trader.participant.payoff}")
-                                trader.participant.payoff += Constants.endowment
-                                logger.info(f"Automated trader endowment +=: {trader.participant.payoff}")
-                                trader.participant.vars['token'] = roles[pi]
-                                logger.info(f"Automated trader token: {trader.participant.vars['token']}")
-                                trader.dump_round_data()
-                                self.session.vars['automated_traders'][(gi, pi)] = trader
+                                automated_traders[(gi, pi)] = {}
+                                automated_trader = automated_traders[(gi, pi)]
+                                logger.info(f"Automated trader: {automated_trader}")
+                                automated_trader['group_color'] = Constants.blue
+                                logger.info(f"Automated trader color: {automated_trader['group_color']}")
+                                automated_trader['group'] = gi
+                                logger.info(f"Automated trader endowment: {automated_trader['payoff']}")
+                                automated_trader['payoff'] += Constants.endowment
+                                logger.info(f"Automated trader endowment +=: {automated_trader['payoff']}")
+        
+                                # assigning the tokens
+                                automated_trader['token'] = roles[pi]
+                                logger.info(f"Automated trader token: {automated_trader['token']}")
                                 logger.info(f"-----------------------------------------")
 
                             logger.info(f"---------------------------------------------")
