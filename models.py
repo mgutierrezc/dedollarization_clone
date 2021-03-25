@@ -146,8 +146,8 @@ class Subsession(BaseSubsession):
 
                 # BOTS 
                 #TODO: add them an extra round for storing last round switches
-                self.session.vars['automated_traders'] = {}    # {round_#: {(group_id, bot_id): {"token":, "group_color": , 
-                                                               # "payoff": }}}
+                self.session.vars['automated_traders'] = {}    # {round_#: {(group_id, bot_id): {"token": ,  
+                                                               # "group_color": , "payoff": }}}
 
                 # automated traders are always in 2nd half of groups
                 ### ONLY CREATE BOTS IF BOT TREATMENT IS TURNED ON
@@ -168,8 +168,7 @@ class Subsession(BaseSubsession):
                                 automated_trader['group_color'] = Constants.blue
                                 logger.info(f"Automated trader color: {automated_trader['group_color']}")
                                 automated_trader['group'] = gi
-                                logger.info(f"Automated trader endowment: {automated_trader['payoff']}")
-                                automated_trader['payoff'] += Constants.endowment
+                                automated_trader['payoff'] = Constants.endowment
                                 logger.info(f"Automated trader endowment +=: {automated_trader['payoff']}")
                                 
                                 # assigning the tokens
@@ -181,6 +180,8 @@ class Subsession(BaseSubsession):
                                     logger.info(f"Automated trader token: {automated_trader['token']}")
                                     
                                     logger.info(f"-----------------------------------------")
+                                else:
+                                    automated_trader['token'] = None # placeholder for last round data
 
 
                     for r in range(Constants.num_rounds):

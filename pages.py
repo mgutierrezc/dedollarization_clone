@@ -194,7 +194,8 @@ class Trade(Page):
             #    self.player.trade_attempted = False
 
             ###### END TESTING PURPOSES ONLY
-            self.player.trade_attempted = False
+            #TODO: Erase after debugging
+            self.player.trade_attempted = True
         
         # counting the total timeouts until this moment
         self.participant.vars["total_timeouts"] += self.player.player_timed_out
@@ -228,8 +229,9 @@ class Results(Page):
     def vars_for_template(self):
         group_id = self.player.participant.vars['group'] 
         player_groups = self.subsession.get_groups()
-        # bot_groups = self.session.vars['automated_traders'] #TODO: erase after refactoring
-        
+        bot_players = None # placeholder for bot player's data in round
+        bot_players_next_round = None # placeholder for bot player's data in next round
+
         # special case: one special player gets to tell all the bots paired
         # with other bots, to compute results
         logger.info(f"213: automated_traders is {self.session.config['automated_traders']}")
@@ -294,14 +296,19 @@ class Results(Page):
         
         # get other player object (for humans)
         logger.info(f"other_group = {other_group}, len(player_groups) = {len(player_groups)}")
+        other_player_trade_attempted = None # placeholder for attempting trade
         if other_group < len(player_groups):
             other_player = player_groups[other_group].get_player_by_id(other_id + 1)
-        #TODO: erase after refactoring
-        # else:
-        #     other_player = bot_groups[(other_group, other_id)]
-        #     other_player.load_round_data()
-        #     other_player.round_number = self.round_number - 1
-
+            other_player_trade_attempted = other_player.trade_attempted
+        #TODO: human bot trade refactoring
+        else:
+            other_player = bot_players[(other_group, other_id)]
+            other_player_next_round = bot_players_next_round[(other_group, other_id)]
+            other_player_item = other_player["token"]
+            print(f"DEBUG: Player next round data {other_player_next_round}")
+            other_player_item_next_round = other_player_next_round["token"]
+            other_player_trade_attempted = bot_attempted_trade(other_player_item, self.player.participant.vars['token'])
+            
         # define initial round payoffs
         round_payoff = c(0)
 
@@ -310,30 +317,31 @@ class Results(Page):
         # that one is a producer and one is a consumer.
         # Only 1 player performs the switch
         logger.info(f"254: self.player.trade_attempted = {self.player.trade_attempted}")
-        logger.info(f"255: other_player.trade_attempted = {other_player.trade_attempted}")
-        #TODO: add condition for bot
-        if self.player.trade_attempted and other_player.trade_attempted: 
+        logger.info(f"255: other_player.trade_attempted = {other_player_trade_attempted}")
+        
+        if self.player.trade_attempted and other_player_trade_attempted: 
 
             # only 1 player actually switches the goods
             logger.info(f"259: self.player.trade_succeeded is {self.player.trade_succeeded}")
             logger.info(f"round number = {self.round_number}")
             logger.info(f"id in group = {self.player.id_in_group}")
-            logger.info(f"other id in group = {other_player.id_in_group}")
+            # logger.info(f"other id in group = {other_player.id_in_group}")
             if self.player.trade_succeeded is None:
 
                 # switch tokens
-                self.player.participant.vars['token'] = self.player.other_token_color
-                #TODO: add condition for bot
-                other_player.participant.vars['token'] = self.player.token_color
+                if other_group < len(player_groups): # for humans
+                    self.player.participant.vars['token'] = self.player.other_token_color
+                    other_player.participant.vars['token'] = self.player.token_color    
+                    other_player.trade_succeeded = True
+                else: # for bots
+                    # next round token
+                    self.player.participant.vars['token'] = other_player_item
+                    other_player_item_next_round = self.player.token_color
+                    # bots don't have trade_succeeded var
 
                 # set players' trade_succeeded field
                 self.player.trade_succeeded = True
-                #TODO: add condition for bot
-                other_player.trade_succeeded = True
-
-                # This lines cause an AttributeError as store_round_data() is not defined
-                # if other_group > len(player_groups):
-                #     other_player.store_round_data()
+                
 
             ### TREATMENT: TAX ON FOREIGN (OPPOSITE) CURRENCY
             # if the player is the consumer, apply consumer tax to them
@@ -416,9 +424,9 @@ class Results(Page):
             
         #TODO: erase after refactoring
         # tell bot to compute its own trade
-        if self.session.config['automated_traders'] == True \
-                and other_group >= len(player_groups):
-            other_player.compute_results(self.subsession, Constants.reward)
+        # if self.session.config['automated_traders'] == True \
+        #         and other_group >= len(player_groups):
+        #     other_player.compute_results(self.subsession, Constants.reward)
 
         return {'participant_id': self.participant.label,
             'token_color': self.player.token_color,
