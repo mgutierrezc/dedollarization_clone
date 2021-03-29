@@ -2,6 +2,7 @@ from otree.api import Currency as c, currency_range
 from ._builtin import Page, WaitPage
 from .models import Constants
 from .project_logger import get_logger
+from .trading_tools import bot_attempted_trade
 
 logger = get_logger('pages.py')
 
@@ -64,26 +65,27 @@ class Trade(Page):
         group_id = self.player.participant.vars['group']
         player_groups = self.subsession.get_groups()
         logger.info(f"Player Groups {player_groups}")
-        bot_groups = self.session.vars['automated_traders']
-        logger.info(f"Bot Groups {bot_groups}")
+        bot_players = self.session.vars['automated_traders'][f"round_{self.round_number}"]
+        logger.info(f"Bot Groups {bot_players}")
 
         # special case: one special player gets to tell all the bots paired
         # with other bots, to trade
 
-        # only if the automated trader treatment is on
-        if self.session.config['automated_traders']:
-            logger.info(f"70: Current player = {self.player.id_in_group}")
-            if group_id == 0 and self.player.id_in_group == 1:
-                for t1, t2 in self.session.vars['pairs'][self.round_number - 1].items():
-                    logger.info(f"73: t1 is {t1} and t2 is {t2}")
-                    t1_group, t1_id = t1
-                    t2_group, _ = t2
-                    # if both members of the pair are bots
-                    logger.info(f"77: t1_group is {t1_group} and t2_group is {t2_group}")
-                    logger.info(f"78: bot groups = {bot_groups}")
-                    if t1_group >= len(player_groups) and t2_group >= len(player_groups):
-                        a1 = bot_groups[(t1_group, t1_id)]
-                        a1.trade(self.subsession)
+        #TODO: erase after refactoring
+        # # only if the automated trader treatment is on
+        # if self.session.config['automated_traders']:
+        #     logger.info(f"70: Current player = {self.player.id_in_group}")
+        #     if group_id == 0 and self.player.id_in_group == 1:
+        #         for t1, t2 in self.session.vars['pairs'][self.round_number - 1].items():
+        #             logger.info(f"73: t1 is {t1} and t2 is {t2}")
+        #             t1_group, t1_id = t1
+        #             t2_group, _ = t2
+        #             # if both members of the pair are bots
+        #             logger.info(f"77: t1_group is {t1_group} and t2_group is {t2_group}")
+        #             logger.info(f"78: bot groups = {bot_groups}")
+        #             if t1_group >= len(player_groups) and t2_group >= len(player_groups):
+        #                 a1 = bot_groups[(t1_group, t1_id)]
+        #                 a1.trade(self.subsession)
 
         # gets a another pair
         # the other pair is the pair that is paired with the current player
@@ -96,13 +98,14 @@ class Trade(Page):
             (group_id, self.player.id_in_group - 1)]
 
         logger.info(f"91: Other group = {other_group}")
-        if other_group < len(player_groups):
+        if other_group < len(player_groups): # for human player partners
             logger.info(f"other_group < len(player_groups) = {other_group < len(player_groups)}")
             other_player = player_groups[other_group].get_player_by_id(other_id + 1)
             logger.info(f"other normal player = {other_player}")
-        else:
+        
+        else: # for bots partners
             logger.info(f"other_group < len(player_groups) = {other_group < len(player_groups)}")
-            other_player = bot_groups[(other_group, other_id)]
+            other_player = bot_players[(other_group, other_id)]
             logger.info(f"other bot player = {other_player}")
 
         self.player.my_id_in_group = self.player.id_in_group
@@ -116,7 +119,14 @@ class Trade(Page):
 
         # whatever color token they were assigned in models.py
         self.player.token_color = self.player.participant.vars['token']
-        self.player.other_token_color = other_player.participant.vars['token']
+
+        #TODO: add conditional for bot and human players. if bot, extract required data from matching file or else
+        if other_group < len(player_groups): # for human player partners
+            self.player.other_token_color = other_player.participant.vars['token']
+            self.player.other_group_color = other_player.participant.vars['group_color']
+        else: # for bots partners
+            self.player.other_token_color = other_player['token']
+            self.player.other_group_color = other_player['group_color']
 
         # defining roles as in models.py
         # ensuring opposites, such that half are producers and half are consumers
@@ -125,11 +135,6 @@ class Trade(Page):
 
         # defining group color as in models.py
         self.player.group_color = self.player.participant.vars['group_color']
-        self.player.other_group_color = other_player.participant.vars['group_color']
-
-        if self.session.config['automated_traders'] == True \
-                and other_group >= len(player_groups):
-            other_player.trade(self.subsession)
 
         # defining the variables for the instructions template
         exchange_rate = self.session.config['real_world_currency_per_point']
@@ -189,7 +194,8 @@ class Trade(Page):
             #    self.player.trade_attempted = False
 
             ###### END TESTING PURPOSES ONLY
-            self.player.trade_attempted = False
+            #TODO: Erase after debugging
+            self.player.trade_attempted = True
         
         # counting the total timeouts until this moment
         self.participant.vars["total_timeouts"] += self.player.player_timed_out
@@ -223,26 +229,61 @@ class Results(Page):
     def vars_for_template(self):
         group_id = self.player.participant.vars['group'] 
         player_groups = self.subsession.get_groups()
-        bot_groups = self.session.vars['automated_traders']
-        
+        bot_players = None # placeholder for bot player's data in round
+        bot_players_next_round = None # placeholder for bot player's data in next round
+
         # special case: one special player gets to tell all the bots paired
         # with other bots, to compute results
         logger.info(f"213: automated_traders is {self.session.config['automated_traders']}")
         if self.session.config['automated_traders']:
+            
+            bot_players = self.session.vars['automated_traders'][f"round_{self.round_number}"]
+            bot_players_next_round = self.session.vars['automated_traders'][f"round_{self.round_number + 1}"]
+            bot_attempted_transactions = {} # attempted transactions in current round for all bots
+
+            for bot_key in bot_players.keys():
+                bot_attempted_transactions[bot_key] = None
 
             logger.info(f"group_id = {group_id}, self.player.id_in_group = {self.player.id_in_group}")
             if group_id == 0 and self.player.id_in_group == 1: 
 
                 for t1, t2 in self.session.vars['pairs'][self.round_number - 1].items():
                     t1_group, t1_id = t1
-                    t2_group, _ = t2
+                    t2_group, t2_id = t2
 
                     # if both members of the pair are bots
                     logger.info(f"224: t1_group = {t1_group}, t2_group = {t2_group}")
                     if t1_group >= len(player_groups) and t2_group >= len(player_groups):
-                        a1 = bot_groups[(t1_group, t1_id)]
-                        a1.compute_results(self.subsession, Constants.reward)
-        
+                        # current round players
+                        a1 = bot_players[(t1_group, t1_id)]
+                        a2 = bot_players[(t2_group, t2_id)]
+
+                        # current round token
+                        a1_token = a1["token"]
+                        a2_token = a2["token"]
+
+                        # next round players
+                        a1_next_round = bot_players_next_round[(t1_group, t1_id)]
+                        a2_next_round = bot_players_next_round[(t2_group, t2_id)]
+
+                        # next round token
+                        a1_token_next_round = a1_next_round["token"]
+                        a2_token_next_round = a2_next_round["token"]
+
+                        # registering each attempted trade        
+                        if bot_attempted_transactions[(t1_group, t1_id)] == None:
+                            bot_attempted_transactions[(t1_group, t1_id)] = bot_attempted_trade(a1_token, a2_token)
+
+                        if bot_attempted_transactions[(t2_group, t2_id)] == None:
+                            bot_attempted_transactions[(t2_group, t2_id)] = bot_attempted_trade(a2_token, a1_token)
+                        
+                        # given that both are bots, only item switching'll be done
+                        trade_succeeded = bot_attempted_transactions[(t1_group, t1_id)] and \
+                                          bot_attempted_transactions[(t2_group, t2_id)]
+                        if trade_succeeded:
+                            a1_token_next_round = a2_token
+                            a2_token_next_round = a1_token
+       
         # identify trading partner
         # similar to above in Trade()
         # if self.session.config['custom_matching'] is True: # id_in_group used directly
@@ -253,15 +294,21 @@ class Results(Page):
         other_group, other_id = self.session.vars['pairs'][self.round_number - 1][
             (group_id, self.player.id_in_group - 1)]
         
-        # get other player object
+        # get other player object (for humans)
         logger.info(f"other_group = {other_group}, len(player_groups) = {len(player_groups)}")
+        other_player_trade_attempted = None # placeholder for attempting trade
         if other_group < len(player_groups):
             other_player = player_groups[other_group].get_player_by_id(other_id + 1)
+            other_player_trade_attempted = other_player.trade_attempted
+        #TODO: human bot trade refactoring
         else:
-            other_player = bot_groups[(other_group, other_id)]
-            other_player.load_round_data()
-            other_player.round_number = self.round_number - 1
-
+            other_player = bot_players[(other_group, other_id)]
+            other_player_next_round = bot_players_next_round[(other_group, other_id)]
+            other_player_item = other_player["token"]
+            print(f"DEBUG: Player next round data {other_player_next_round}")
+            other_player_item_next_round = other_player_next_round["token"]
+            other_player_trade_attempted = bot_attempted_trade(other_player_item, self.player.participant.vars['token'])
+            
         # define initial round payoffs
         round_payoff = c(0)
 
@@ -270,24 +317,31 @@ class Results(Page):
         # that one is a producer and one is a consumer.
         # Only 1 player performs the switch
         logger.info(f"254: self.player.trade_attempted = {self.player.trade_attempted}")
-        logger.info(f"255: other_player.trade_attempted = {other_player.trade_attempted}")
-        if self.player.trade_attempted and other_player.trade_attempted: 
+        logger.info(f"255: other_player.trade_attempted = {other_player_trade_attempted}")
+        
+        if self.player.trade_attempted and other_player_trade_attempted: 
 
             # only 1 player actually switches the goods
             logger.info(f"259: self.player.trade_succeeded is {self.player.trade_succeeded}")
+            logger.info(f"round number = {self.round_number}")
+            logger.info(f"id in group = {self.player.id_in_group}")
+            # logger.info(f"other id in group = {other_player.id_in_group}")
             if self.player.trade_succeeded is None:
 
                 # switch tokens
-                self.player.participant.vars['token'] = self.player.other_token_color
-                other_player.participant.vars['token'] = self.player.token_color
+                if other_group < len(player_groups): # for humans
+                    self.player.participant.vars['token'] = self.player.other_token_color
+                    other_player.participant.vars['token'] = self.player.token_color    
+                    other_player.trade_succeeded = True
+                else: # for bots
+                    # next round token
+                    self.player.participant.vars['token'] = other_player_item
+                    other_player_item_next_round = self.player.token_color
+                    # bots don't have trade_succeeded var
 
                 # set players' trade_succeeded field
                 self.player.trade_succeeded = True
-                other_player.trade_succeeded = True
-
-                # This lines cause an AttributeError as store_round_data() is not defined
-                # if other_group > len(player_groups):
-                #     other_player.store_round_data()
+                
 
             ### TREATMENT: TAX ON FOREIGN (OPPOSITE) CURRENCY
             # if the player is the consumer, apply consumer tax to them
@@ -368,11 +422,12 @@ class Results(Page):
         else:
             new_token_color = self.player.token_color
             
-
+        #TODO: erase after refactoring
         # tell bot to compute its own trade
-        if self.session.config['automated_traders'] == True \
-                and other_group >= len(player_groups):
-            other_player.compute_results(self.subsession, Constants.reward)
+        # if self.session.config['automated_traders'] == True \
+        #         and other_group >= len(player_groups):
+        #     other_player.compute_results(self.subsession, Constants.reward)
+
         return {'participant_id': self.participant.label,
             'token_color': self.player.token_color,
             'other_token_color': self.player.other_token_color,
@@ -389,7 +444,7 @@ class Results(Page):
     def is_displayed(self):
         return self.participant.vars['MobilePhones'] is False and self.round_number <= self.session.vars['predetermined_stop']
 
-    logger.debug("-> Exiting Results")
+    logger.debug("-> Exiting Results")  
 
 
 class PostResultsWaitPage(WaitPage):
@@ -399,7 +454,7 @@ class PostResultsWaitPage(WaitPage):
 #    wait_for_all_groups = True
 
     def after_all_players_arrive(self):
-        bot_groups = self.session.vars['automated_traders']
+        bot_players = self.session.vars['automated_traders']
         
         # count foreign currency transactions this round
         fc_count = 0
@@ -448,9 +503,9 @@ class PostResultsWaitPage(WaitPage):
         self.subsession.fc_transaction_percent = int(fc_percent*100)
         """
 
-        if self.subsession.round_number == Constants.num_rounds:
-            for bot in bot_groups.values():
-                bot.export_data()
+        # if self.subsession.round_number == Constants.num_rounds:
+        #     for bot in bot_groups.values():
+        #         bot.export_data()
             # for p in self.subsession.get_players():
             #    p.participant.payoff *= self.session.config['soles_per_ecu']
 
