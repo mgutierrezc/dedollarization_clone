@@ -195,7 +195,7 @@ class Trade(Page):
 
             ###### END TESTING PURPOSES ONLY
             #TODO: Erase after debugging
-            self.player.trade_attempted = True
+            self.player.trade_attempted = False
         
         # counting the total timeouts until this moment
         self.participant.vars["total_timeouts"] += self.player.player_timed_out
