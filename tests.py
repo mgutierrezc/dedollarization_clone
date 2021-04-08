@@ -141,6 +141,7 @@ class PlayerBot(Bot):
         if bot.participant.vars['token'] == Constants.trade_good:
             assert(bot.payoff >= -tax_cons)
 
+    # PlayerBot starts execution
     def play_round(self):
         aa = [[0.5, 0, 0], [0.75, 0, 0], [0.75, 1, 2]]
         dd = [True, False]
