@@ -77,10 +77,16 @@
     
     <br><br>        
     <h3>Tiempo de decision y timeouts</h3>
-    Es importante que estés alerta a cuando te toca decidir, así la sesión no se extenderá innecesariamente. 
-    Cada pantalla de decisión está activa por <b>60 segundos</b>. Si no decides en ese tiempo, y la computadora pasa 
-    a la siguiente pantalla automáticamente, incurres en un “timeout”. Por cada timeout en el que incurras en 
-    toda la sesión, se te descontará un punto. Nota que la forma de <b>maximizar ganancias</b> en la interacción es 
-    teniendo <b>decisiones activas</b>.
+    <p>
+        Es importante que estés alerta a cuando te toca decidir, así la sesión no se extenderá innecesariamente. 
+        Cada pantalla de decisión está activa por <b>60 segundos</b>. Si no decides en ese tiempo, y la computadora pasa 
+        a la siguiente pantalla automáticamente, incurres en un “timeout”. Por cada timeout en el que incurras en 
+        toda la sesión, se te descontará {{ Constants.timeout_penalty }}. Nota que la forma de <b>maximizar ganancias</b> en la interacción es 
+        teniendo <b>decisiones activas</b>.
+    </p>
+    <p>
+        Si acumulas <b>{{ Constants.no_payment_timeouts }} timeouts</b>, asumiremos que te fuiste del experimento. Por 
+        lo tanto, no recibirías ningún pago por participar.
+    </p>
 
 </p>

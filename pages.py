@@ -71,22 +71,6 @@ class Trade(Page):
         # special case: one special player gets to tell all the bots paired
         # with other bots, to trade
 
-        #TODO: erase after refactoring
-        # # only if the automated trader treatment is on
-        # if self.session.config['automated_traders']:
-        #     logger.info(f"70: Current player = {self.player.id_in_group}")
-        #     if group_id == 0 and self.player.id_in_group == 1:
-        #         for t1, t2 in self.session.vars['pairs'][self.round_number - 1].items():
-        #             logger.info(f"73: t1 is {t1} and t2 is {t2}")
-        #             t1_group, t1_id = t1
-        #             t2_group, _ = t2
-        #             # if both members of the pair are bots
-        #             logger.info(f"77: t1_group is {t1_group} and t2_group is {t2_group}")
-        #             logger.info(f"78: bot groups = {bot_groups}")
-        #             if t1_group >= len(player_groups) and t2_group >= len(player_groups):
-        #                 a1 = bot_groups[(t1_group, t1_id)]
-        #                 a1.trade(self.subsession)
-
         # gets a another pair
         # the other pair is the pair that is paired with the current player
         # if self.session.config['custom_matching'] is True: # id_in_group used directly
@@ -120,7 +104,6 @@ class Trade(Page):
         # whatever color token they were assigned in models.py
         self.player.token_color = self.player.participant.vars['token']
 
-        #TODO: add conditional for bot and human players. if bot, extract required data from matching file or else
         if other_group < len(player_groups): # for human player partners
             self.player.other_token_color = other_player.participant.vars['token']
             self.player.other_group_color = other_player.participant.vars['group_color']
@@ -194,8 +177,7 @@ class Trade(Page):
             #    self.player.trade_attempted = False
 
             ###### END TESTING PURPOSES ONLY
-            #TODO: Erase after debugging
-            self.player.trade_attempted = True
+            self.player.trade_attempted = False
         
         # counting the total timeouts until this moment
         self.participant.vars["total_timeouts"] += self.player.player_timed_out
@@ -300,8 +282,7 @@ class Results(Page):
         if other_group < len(player_groups):
             other_player = player_groups[other_group].get_player_by_id(other_id + 1)
             other_player_trade_attempted = other_player.trade_attempted
-        #TODO: human bot trade refactoring
-        else:
+        else: # for bot partner
             other_player = bot_players[(other_group, other_id)]
             other_player_next_round = bot_players_next_round[(other_group, other_id)]
             other_player_item = other_player["token"]
@@ -421,12 +402,6 @@ class Results(Page):
             new_token_color = self.player.other_token_color
         else:
             new_token_color = self.player.token_color
-            
-        #TODO: erase after refactoring
-        # tell bot to compute its own trade
-        # if self.session.config['automated_traders'] == True \
-        #         and other_group >= len(player_groups):
-        #     other_player.compute_results(self.subsession, Constants.reward)
 
         return {'participant_id': self.participant.label,
             'token_color': self.player.token_color,
@@ -520,13 +495,20 @@ class FinalResults(Page):
 
     def vars_for_template(self):
         self.player.total_timeouts = self.participant.vars["total_timeouts"]
-        self.player.total_discounts = self.player.total_timeouts*c(1)
+        self.player.total_discounts = self.player.total_timeouts*Constants.timeout_penalty
         
         # converting points to real money
+        if self.player.total_timeouts >= Constants.no_payment_timeouts:
+            self.participant.payoff = c(0)
+            self.participant.vars["player_left"] = True
+        else:
+            self.participant.vars["player_left"] = False
+
         payoff_money = self.participant.payoff.to_real_world_currency(self.player.session)
         total_discounts_money = self.player.total_discounts.to_real_world_currency(self.player.session)
 
-        return {'participant_id': self.participant.label,
+        return {"max_timeouts": Constants.no_payment_timeouts,
+                'participant_id': self.participant.label,
                 "participation_fee": self.session.config["participation_fee"],
                 "payoff_money": payoff_money,
                 "total_timeouts": self.player.total_timeouts,

@@ -35,13 +35,15 @@ class Constants(BaseConstants):
     contact_template = 'dedollarization/Contactenos.html'
     players_per_group = 8
     number_of_bots = 20
-    # num_rounds = 115 # for production run
-    num_rounds = 30 # for demo run
+    num_rounds = 105 # for production run
+    # num_rounds = 30 # for demo run
     endowment = c(50)
     reward = c(10)
     red = 'Rojo'
     blue = 'Azul'
     trade_good = 'Bien de Consumo'
+    timeout_penalty = c(4)
+    no_payment_timeouts = 15 # after this number of timeouts, payment will be 0
     
 
 class Subsession(BaseSubsession):
