@@ -39,7 +39,10 @@ Pagos finales
       <td class="tg-0lax">{{ total_timeouts }} timeouts = {{ total_discounts_money }} ({{ total_discounts_points }})</td>
     </tr>
   </tbody>
-  {% else %}
+</table>
+<br>
+  {% next_button %}
+{% else %}
   <thead>
     <tr>
       <th class="tg-fymr">Pago por participación</th>
@@ -52,8 +55,19 @@ Pagos finales
       <td class="tg-kwiq">0 puntos, pues el número de timeouts ({{ total_timeouts }}) fue mayor a {{ max_timeouts }}</td>
     </tr>
     </tbody>
-    {% endif %}
   </table>
-<br>
-  {% next_button %}
+
+  <br>
+  <p>
+    Como indicamos en nuestras instrucciones, <b>15 o más timeouts</b> significan que usted se ha retirado del experimento.
+    Por ello, <b>no tendrá derecho a pago</b> por la sesión y esta se considerará como <b>una asistencia</b> en nuestra base de datos.
+  </p>
+  <p>
+    Recuerda que de llegar a <b>3 inasistencias</b>, el sistema automáticamente te excluye de cualquier futuro experimento. 
+    Por favor, no cometa esta falta nuevamente.
+  </p>
+  
+    {% endif %}
+  
+
 {% endblock %}
